@@ -70,10 +70,6 @@
 
             <div class="control-row">
               <div class="control-actions">
-                <div v-if="activeSlotPlaying" class="radio-item" @click="onReplay">重播</div>
-                <div v-else class="radio-item" @click="onPlayer">播放</div>
-                <div class="radio-item" @click="onPause">暂停</div>
-                <div class="radio-item" @click="onMute">静音</div>
                 <div class="radio-item" @click="setFullscreen">全屏</div>
                 <div v-if="activeSlotPlaying || activeSlot?.cameraCode" class="radio-item" @click="onStop">注销</div>
               </div>
@@ -104,12 +100,15 @@
   import { setPtzControl } from '@/views/nengyuanzhan/anhuanguanli/shipinjiankong/shishishipin/depart.api';
 
   interface VideoTreeNode {
-    key?: string;
+    [key: string]: any;
+    key?: string | number;
+    value?: string | number;
+    id?: string | number;
     title?: string;
     name?: string;
     camera?: string;
-    cameraCode?: string;
-    deviceCode?: string;
+    cameraCode?: string | number;
+    deviceCode?: string | number;
     children?: VideoTreeNode[];
   }
 
@@ -152,15 +151,40 @@
   });
   const playerList = ref<PlayerSlot[]>([]);
   const reconnectVersions = new Map<number, number>();
+
   const {
     create: createPlayer,
     destroy: destroyPlayers,
     getPlayer,
-    pause: pausePlayer,
     play: playPlayer,
     setFullscreen: setPlayerFullscreen,
-    setMute: setPlayerMute,
-  } = useEasyPlayerList();
+  } = useEasyPlayerList((slotIndex) => ({
+    websocketOpen: () => {
+      const slot = getSlot(slotIndex);
+      console.log('[实时视频] WebSocket 连接成功', slot?.playUrl, {
+        slot: slotIndex + 1,
+        cameraCode: slot?.cameraCode,
+      });
+    },
+    websocketError: (error) => {
+      const slot = getSlot(slotIndex);
+      console.error('[实时视频] WebSocket 连接失败', {
+        slot: slotIndex + 1,
+        cameraCode: slot?.cameraCode,
+        url: slot?.playUrl,
+        error,
+      });
+    },
+    websocketClose: (event) => {
+      const slot = getSlot(slotIndex);
+      console.warn('[实时视频] WebSocket 连接关闭', {
+        slot: slotIndex + 1,
+        cameraCode: slot?.cameraCode,
+        url: slot?.playUrl,
+        event,
+      });
+    },
+  }));
 
   const activeSlot = computed(() => playerList.value[activeSlotIndex.value] || null);
   const activeSlotPlaying = computed(() => Boolean(activeSlot.value?.isPlaying));
@@ -218,6 +242,25 @@
 
   function getCameraName(data: VideoTreeNode) {
     return data?.title || data?.name || '未命名摄像头';
+  }
+
+  function getFirstCode(data: VideoTreeNode, fields: string[]) {
+    for (const field of fields) {
+      const value = data?.[field];
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        return String(value).trim();
+      }
+    }
+
+    return '';
+  }
+
+  function getCameraCode(data: VideoTreeNode) {
+    return getFirstCode(data, ['cameraCode', 'deviceCode', 'key', 'value', 'id', 'code']);
+  }
+
+  function getDeviceCode(data: VideoTreeNode) {
+    return getFirstCode(data, ['deviceCode', 'deviceId', 'deviceNo', 'code', 'key', 'value', 'id', 'cameraCode']);
   }
 
   function isCameraNode(data?: VideoTreeNode | null) {
@@ -308,14 +351,16 @@
     });
   }
 
-  async function playSlotByCameraCode(slotIndex: number) {
+  async function playSlot(slotIndex: number) {
     const slot = getSlot(slotIndex);
-    if (!slot?.cameraCode) {
+    if (!slot) {
       return;
     }
 
-    const url = getVideoWebSocketUrl(slot.cameraCode);
+    const url = slot.playUrl;
     if (!url) {
+      message.warning('未获取到视频流地址');
+      console.warn('[实时视频] 未获取到视频流地址', slot);
       return;
     }
 
@@ -325,10 +370,21 @@
 
     slot.playUrl = url;
     slot.isPlaying = true;
+    console.log('[实时视频] 播放地址', url, {
+      slot: slotIndex + 1,
+      cameraName: slot.cameraName,
+      cameraCode: slot.cameraCode,
+      deviceCode: slot.deviceCode,
+    });
 
     await playPlayer(slotIndex, url, 'play', (error) => {
       slot.isPlaying = false;
-      console.error(error);
+      console.error('[实时视频] 播放失败', {
+        slot: slotIndex + 1,
+        cameraCode: slot.cameraCode,
+        url,
+        error,
+      });
     });
   }
 
@@ -352,7 +408,7 @@
       return;
     }
 
-    await playSlotByCameraCode(slotIndex);
+    await playSlot(slotIndex);
   }
 
   function cancelPendingReconnect(slotIndex: number) {
@@ -378,7 +434,7 @@
 
     for (let index = 0; index < preservedSlots.length; index += 1) {
       if (preservedSlots[index]?.isPlaying && preservedSlots[index]?.cameraCode) {
-        await playSlotByCameraCode(index);
+        await playSlot(index);
       }
     }
   }
@@ -412,14 +468,14 @@
       message.error('当前分屏不可用，请重新选择分屏后再试!');
       return;
     }
-
-    const cameraCode = data.cameraCode || '';
+    const cameraCode = getCameraCode(data);
     if (!cameraCode) {
       message.error('未获取到摄像头编码!');
+      console.warn('[实时视频] 未获取到摄像头编码', data);
       return;
     }
 
-    const deviceCode = data.deviceCode || data.key || '';
+    const deviceCode = getDeviceCode(data) || cameraCode;
 
     hasResolvedDefaultCamera.value = true;
     slot.deviceCode = deviceCode;
@@ -443,42 +499,8 @@
     }
   }
 
-  async function onPlayer() {
-    const slot = activeSlot.value;
-    if (!slot?.cameraCode) {
-      message.warning('请先选择摄像头!');
-      return;
-    }
-
-    await playSlotByCameraCode(activeSlotIndex.value);
-  }
-
-  function onPause() {
-    const slot = activeSlot.value;
-    if (!slot) {
-      return;
-    }
-
-    pausePlayer(activeSlotIndex.value);
-    slot.isPlaying = false;
-  }
-
-  function onMute() {
-    setPlayerMute(activeSlotIndex.value, true);
-  }
-
   function setFullscreen() {
     setPlayerFullscreen(activeSlotIndex.value, true);
-  }
-
-  async function onReplay() {
-    const slot = activeSlot.value;
-    if (!slot?.cameraCode) {
-      message.warning('请先选择摄像头!');
-      return;
-    }
-
-    await reconnectSlot(activeSlotIndex.value);
   }
 
   async function onStop() {

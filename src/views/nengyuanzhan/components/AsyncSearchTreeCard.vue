@@ -68,7 +68,31 @@
     return node?.[keyField.value];
   }
 
-  function emitRootTreeData() {
+  function findNodeByKey(nodes: TreeNode[] = [], key?: string | number): TreeNode | null {
+    if (key === undefined) {
+      return null;
+    }
+
+    for (const node of nodes) {
+      if (getNodeKey(node) === key) {
+        return node;
+      }
+
+      const childNode = findNodeByKey(Array.isArray(node.children) ? node.children : [], key);
+      if (childNode) {
+        return childNode;
+      }
+    }
+
+    return null;
+  }
+
+  function getSelectedNode(selKeys: Array<string | number>, event: Record<string, any>) {
+    const selectedKey = selKeys[0];
+    return findNodeByKey(treeData.value, selectedKey) || event.node?.dataRef || event.selectedNodes?.[0] || null;
+  }
+
+  function emitLoadedRootTreeData() {
     if (props.emitRootTreeData) {
       emit('rootTreeData', treeData.value);
     }
@@ -83,7 +107,7 @@
       if (expandedKeys.value.length === 0) {
         autoExpandParentNode();
       }
-      emitRootTreeData();
+      emitLoadedRootTreeData();
     } finally {
       loading.value = false;
     }
@@ -111,7 +135,7 @@
       }
 
       treeData.value = [...treeData.value];
-      emitRootTreeData();
+      emitLoadedRootTreeData();
     } catch (error) {
       console.error(error);
     }
@@ -167,7 +191,7 @@
       const result = await props.search(props.getSearchParams(value));
       treeData.value = Array.isArray(result) ? result : [];
       autoExpandParentNode();
-      emitRootTreeData();
+      emitLoadedRootTreeData();
     } finally {
       loading.value = false;
     }
@@ -175,12 +199,12 @@
 
   function onSelect(selKeys: Array<string | number>, event: Record<string, any>) {
     if (selKeys.length > 0 && selectedKeys.value[0] !== selKeys[0]) {
-      setSelectedNode(event.selectedNodes?.[0]);
+      setSelectedNode(getSelectedNode(selKeys, event));
       return;
     }
 
     if (selectedKeys.value.length > 0) {
-      setSelectedNode(currentNode.value || event.selectedNodes?.[0]);
+      setSelectedNode(currentNode.value || getSelectedNode(selKeys, event));
     }
   }
 

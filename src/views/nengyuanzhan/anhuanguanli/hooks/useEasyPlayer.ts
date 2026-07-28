@@ -33,6 +33,10 @@ interface EasyPlayerInstance {
 }
 
 interface EasyPlayerEvents {
+  /** EasyPlayer 底层视频 WebSocket 已建立连接 */
+  websocketOpen?: () => void;
+  websocketError?: (error: unknown) => void;
+  websocketClose?: (event: unknown) => void;
   fullscreen?: (flag: boolean) => void;
   playbackRate?: (rate: number, player: EasyPlayerInstance) => void;
   playbackSeek?: (data: unknown) => void;
@@ -53,6 +57,24 @@ function waitForCleanup() {
 }
 
 function bindEvents(player: EasyPlayerInstance, events: EasyPlayerEvents = {}) {
+  if (events.websocketOpen) {
+    player.on('websocketOpen', () => {
+      events.websocketOpen?.();
+    });
+  }
+
+  if (events.websocketError) {
+    player.on('websocketError', (error) => {
+      events.websocketError?.(error);
+    });
+  }
+
+  if (events.websocketClose) {
+    player.on('websocketClose', (event) => {
+      events.websocketClose?.(event);
+    });
+  }
+
   player.on('fullscreen', (flag) => {
     events.fullscreen?.(flag);
   });
@@ -90,15 +112,34 @@ async function invokePlayer(
   url: string,
   onError: EasyPlayerErrorHandler = console.error
 ) {
-  if (!player || !url) {
+  if (!player) {
+    console.warn('[EasyPlayer] 播放器未创建，无法播放', {
+      method,
+      url,
+    });
+    return;
+  }
+
+  if (!url) {
+    console.warn('[EasyPlayer] 播放地址为空，无法播放', {
+      method,
+      url,
+    });
     return;
   }
 
   await new Promise<void>((resolve) => {
     setTimeout(
       (currentUrl: string) => {
+        console.log(`[EasyPlayer] 即将调用 player.${method}，当前播放地址: ${currentUrl}`);
         player[method](currentUrl)
-          .catch(onError)
+          .then((result) => {
+            console.log(`[EasyPlayer] player.${method} 调用成功，当前播放地址: ${currentUrl}`, result);
+          })
+          .catch((error) => {
+            console.error(`[EasyPlayer] player.${method} 调用失败，当前播放地址: ${currentUrl}`, error);
+            onError(error);
+          })
           .finally(() => resolve());
       },
       0,
@@ -131,6 +172,7 @@ export function useEasyPlayer(events: EasyPlayerEvents = {}) {
   }
 
   async function play(url: string, method: EasyPlayerMethod = 'play', onError?: EasyPlayerErrorHandler) {
+    console.log(`[EasyPlayer] play 方法收到播放地址: ${url}`, { method });
     await invokePlayer(player.value, method, url, onError);
   }
 
@@ -204,6 +246,10 @@ export function useEasyPlayerList(getEvents: (index: number) => EasyPlayerEvents
   }
 
   async function play(index: number, url: string, method: EasyPlayerMethod = 'play', onError?: EasyPlayerErrorHandler) {
+    console.log(`[EasyPlayerList] play 方法收到播放地址: ${url}`, {
+      slot: index + 1,
+      method,
+    });
     await invokePlayer(getPlayer(index), method, url, onError);
   }
 

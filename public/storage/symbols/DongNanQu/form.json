@@ -1,0 +1,236 @@
+{
+  "modified": "Wed Jun 10 2026 15:44:47 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [],
+  "width": 150,
+  "height": 140,
+  "comps": [
+    {
+      "type": "text",
+      "text": "系统主要设定",
+      "color": "rgb(255,255,255)",
+      "rect": [
+        6.52273,
+        2.38636,
+        93.47727,
+        12.88636
+      ]
+    },
+    {
+      "type": "shape",
+      "borderWidth": 1,
+      "borderColor": "rgb(117,12,12)",
+      "points": [
+        0.31818,
+        14.63636,
+        100.06818,
+        14.79545
+      ]
+    },
+    {
+      "type": "text",
+      "text": "指令源",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        18.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "操作模式",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        33.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "时间表",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        48.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "BA系统启停",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        63.41945,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "控制模式",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        78.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "冷却水温度设定",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        93.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "冷却水温差设定",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        108.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "text",
+      "text": "冷冻水压差设定",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        6.52273,
+        123.65844,
+        50,
+        10.239
+      ]
+    },
+    {
+      "type": "shape",
+      "borderWidth": 1,
+      "borderColor": "rgb(117,12,12)",
+      "points": [
+        99.38644,
+        14.76157,
+        109.14616,
+        14.76157,
+        150.24447,
+        14.76157
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        16.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        31.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        46.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        61.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        76.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        91.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        106.46855,
+        61.84561,
+        12.42889
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        88.15439,
+        121.46855,
+        61.84561,
+        12.42889
+      ]
+    }
+  ]
+}

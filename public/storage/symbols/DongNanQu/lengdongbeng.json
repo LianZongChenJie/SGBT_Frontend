@@ -1,0 +1,127 @@
+{
+  "modified": "Thu Jun 11 2026 15:42:54 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [
+    {
+      "attr": "name",
+      "valueType": "String",
+      "name": "名字"
+    },
+    {
+      "attr": "GSYL",
+      "valueType": "String",
+      "defaultValue": "5.1bar",
+      "name": "供水压力"
+    },
+    {
+      "attr": "HSYL",
+      "valueType": "String",
+      "defaultValue": "5.1bar",
+      "name": "回水压力"
+    },
+    {
+      "attr": "QTKZ",
+      "valueType": "String",
+      "name": "启停控制",
+      "defaultValue": "inactive"
+    },
+    {
+      "attr": "PLFK",
+      "valueType": "String",
+      "name": "频率反馈"
+    }
+  ],
+  "width": 150,
+  "height": 100,
+  "comps": [
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@name",
+        "value": "5号冷冻泵"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "displayName": "5号冷却泵",
+      "anchorX": 0.5269,
+      "anchorY": 1.0484,
+      "rect": [
+        50.92375,
+        68.46773,
+        48.1525,
+        17.6333
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@GSYL",
+        "value": "5.1bar"
+      },
+      "color": "rgb(255,255,255)",
+      "font": "16px arial, sans-serif",
+      "rect": [
+        119.63636,
+        14,
+        28.31818,
+        11.13636
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@HSYL",
+        "value": "5.1bar"
+      },
+      "color": "rgb(255,255,255)",
+      "font": "16px arial, sans-serif",
+      "rect": [
+        -18,
+        38.11364,
+        28.31818,
+        11.13636
+      ]
+    },
+    {
+      "type": "image",
+      "name": "assets/DongNanQu/图层 5.png",
+      "displayName": "图层 5",
+      "rect": [
+        45.875,
+        23.60452,
+        58.25,
+        42.86321
+      ]
+    },
+    {
+      "type": "image",
+      "color": {
+        "func": "__ht__function(data, view) {\nif(data.a('QTKZ')=='启动'){\r\n    return '#54f504'\r\n}else{\r\n    return '#fff'\r\n}\n}"
+      },
+      "name": "assets/DongNanQu/图层 2.png",
+      "displayName": "图层 2",
+      "rect": [
+        64.13636,
+        31.17688,
+        24.79545,
+        25.87352
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@PLFK"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        51.53408,
+        0.13636,
+        50,
+        19.43182
+      ]
+    }
+  ]
+}

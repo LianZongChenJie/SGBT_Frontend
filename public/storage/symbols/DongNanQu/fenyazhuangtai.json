@@ -1,0 +1,29 @@
+{
+  "modified": "Wed Jun 24 2026 11:09:39 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [
+    {
+      "attr": "value",
+      "valueType": "String",
+      "name": "风压状态"
+    }
+  ],
+  "width": 50,
+  "height": 32,
+  "comps": [
+    {
+      "type": "image",
+      "name": "assets/DongNanQu/箭头.png",
+      "visible": {
+        "func": "__ht__function(data, view) {\nif(data.a('value')=='inactive'){\r\n    return true\r\n}else{\r\n    return false\r\n}\n}"
+      },
+      "displayName": "箭头",
+      "rect": [
+        1,
+        0,
+        49,
+        32
+      ]
+    }
+  ]
+}

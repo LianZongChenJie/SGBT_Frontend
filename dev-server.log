@@ -1,0 +1,120 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'enforce' option. Use 'order' option instead.[39m
+
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'transform' option. Use 'handler' option instead.[39m
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m19558[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3100[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://10.0.16.172:[1m3100[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.37:[1m3100[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m14:29:41[22m [36m[1m[vite][22m[39m [32m.env.development changed, restarting server...[39m
+
+ WARN  [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[2m14:30:27[22m [36m[1m[vite][22m[39m [32m.env.development changed, restarting server...[39m
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'enforce' option. Use 'order' option instead.[39m
+
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'transform' option. Use 'handler' option instead.[39m
+
+Re-optimizing dependencies because vite config has changed
+[2m14:30:29[22m [36m[1m[vite][22m[39m server restarted.
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3100[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.37:[1m3100[22m/[39m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m3100[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.37:[1m3100[22m/[39m
+[2m14:31:18[22m [36m[1m[vite][22m[39m [32m.env.development changed, restarting server...[39m
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'enforce' option. Use 'order' option instead.[39m
+
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'transform' option. Use 'handler' option instead.[39m
+
+X [ERROR] The build was canceled
+
+[2m14:31:21[22m [36m[1m[vite][22m[39m server restarted.
+[2m14:31:44[22m [36m[1m[vite][22m[39m [32m.env.development changed, restarting server...[39m
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'enforce' option. Use 'order' option instead.[39m
+
+
+ WARN  [33mplugin 'vite:@rys-fe/inject-vite-plugin-theme-client' uses deprecated 'transform' option. Use 'handler' option instead.[39m
+
+[2m14:31:49[22m [36m[1m[vite][22m[39m server restarted.
+[2m10:47:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/chart/StackBar.vue[22m
+[2m10:47:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/chart/Pie.vue[22m
+[2m10:59:41[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/dashboard.ts[22m
+10:59:41 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+10:59:41 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+10:59:41 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+[2m10:59:41[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/views/dashboard/workbench/index.vue[22m
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:00:18 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+[2m11:08:36[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/dashboard.ts[22m
+11:08:36 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+11:08:36 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+[2m11:08:36[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/enums/pageEnum.ts[22m
+11:08:40 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:08:40 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:08:44 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+11:08:44 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\user.ts
+[2m11:09:30[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/dashboard.ts[22m
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+11:09:30 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+[2m11:09:31[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/views/dashboard/workbench/index.vue[22m
+11:09:55 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:09:55 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\demo\system.ts
+11:12:32 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+11:12:32 [vite:mock] mock file change C:\Users\lenovo\Desktop\bems-web\mock\sys\menu.ts
+[2m11:12:32[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/dashboard.ts[22m
+[2m11:12:32[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/permission.ts[22m
+[2m11:12:32[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/dashboard.ts[22m
+[2m11:12:32[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/about.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/permission.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/level.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/iframe.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/charts.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/comp.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/feat.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/page.ts[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/router/routes/modules/demo/setup.ts[22m
+node:internal/fs/watchers:323
+    const error = new UVException({
+                  ^
+
+Error: EBUSY: resource busy or locked, watch 'C:\Users\lenovo\Desktop\bems-web\dist.zip'
+    at FSWatcher.<computed> (node:internal/fs/watchers:323:19)
+    at Object.watch (node:fs:3062:36)
+    at createFsWatchInstance (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:42780:17)
+    at setFsWatchListener (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:42827:15)
+    at NodeFsHandler._watchWithNodeFs (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:42982:14)
+    at NodeFsHandler._handleFile (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:43046:23)
+    at NodeFsHandler._addToNodeFs (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:43288:21)
+Emitted 'error' event on FSWatcher instance at:
+    at FSWatcher._handleError (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:44481:10)
+    at NodeFsHandler._addToNodeFs (file:///C:/Users/lenovo/Desktop/bems-web/node_modules/.pnpm/vite@5.4.21_@types+node@20.19.43_less@4.6.7_sass-embedded@1.100.0_sugarss@5.0.1/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:43296:18) {
+  errno: -4082,
+  syscall: 'watch',
+  code: 'EBUSY',
+  path: 'C:\\Users\\lenovo\\Desktop\\bems-web\\dist.zip',
+  filename: 'C:\\Users\\lenovo\\Desktop\\bems-web\\dist.zip'
+}
+
+Node.js v26.4.0

@@ -1,0 +1,6 @@
+allowBuilds:
+  '@logicflow/core': false
+  '@parcel/watcher': false
+  core-js: false
+  esbuild: false
+  vue-demi: false

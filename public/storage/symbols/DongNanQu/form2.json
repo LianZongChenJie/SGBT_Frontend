@@ -1,0 +1,177 @@
+{
+  "modified": "Mon Jun 22 2026 15:35:56 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [],
+  "width": 190,
+  "height": 130,
+  "comps": [
+    {
+      "type": "shape",
+      "borderWidth": 1,
+      "borderColor": "rgb(117,12,12)",
+      "points": [
+        0.31818,
+        14.63636,
+        100.06818,
+        14.79545
+      ]
+    },
+    {
+      "type": "text",
+      "text": "操作模式",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        20.68683,
+        50,
+        13.77694
+      ]
+    },
+    {
+      "type": "text",
+      "text": "系统启停",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        39.17943,
+        50,
+        13.65451
+      ]
+    },
+    {
+      "type": "text",
+      "text": "设定温度",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        57.55785,
+        50,
+        13.64626
+      ]
+    },
+    {
+      "type": "text",
+      "text": "设定湿度",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        75,
+        50,
+        13.51746
+      ]
+    },
+    {
+      "type": "shape",
+      "borderWidth": 1,
+      "borderColor": "rgb(117,12,12)",
+      "points": [
+        99.38644,
+        14.69896,
+        116.7753,
+        14.69896,
+        190,
+        14.69896
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        18.0936,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        36.46377,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        54.83394,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        73.20412,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        91.57429,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "text",
+      "text": "季节模式",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        94.427,
+        50,
+        13.51746
+      ]
+    },
+    {
+      "type": "roundRect",
+      "background": "rgba(217,217,217,0)",
+      "borderWidth": 1,
+      "borderColor": "#979797",
+      "rect": [
+        123.02999,
+        110.12693,
+        65.44923,
+        16.37017
+      ]
+    },
+    {
+      "type": "text",
+      "text": "水阀冬季最小开度",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        4.52273,
+        112.97964,
+        50,
+        13.51746
+      ]
+    }
+  ]
+}

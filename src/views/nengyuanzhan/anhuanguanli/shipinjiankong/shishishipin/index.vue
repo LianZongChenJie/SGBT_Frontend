@@ -293,13 +293,17 @@
     return null;
   }
 
+  function withFlvSuffix(url: string) {
+    return url.toLowerCase().endsWith('.flv') ? url : `${url}.flv`;
+  }
+
   function getVideoWebSocketUrl(cameraCode: string) {
     if (!cameraCode) {
       return '';
     }
 
     const webSocketDomain = glob.domainUrl?.replace('https://', 'wss://').replace('http://', 'ws://');
-    return webSocketDomain ? `${webSocketDomain}/websocket/flv/${encodeURIComponent(cameraCode)}` : '';
+    return webSocketDomain ? withFlvSuffix(`${webSocketDomain}/websocket/flv/${encodeURIComponent(cameraCode)}`) : '';
   }
 
   async function createPlayerForSlot(slotIndex: number) {

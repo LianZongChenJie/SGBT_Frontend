@@ -185,8 +185,29 @@
       interval: 5000,
     },
     protocols: [(getToken() || '') as string],
-    onConnected: flushPendingPlayCommands,
+    onConnected: (socket) => {
+      console.log('[实时视频命令 WebSocket] 连接成功', {
+        url: socket.url,
+        status: socket.readyState,
+      });
+      flushPendingPlayCommands();
+    },
+    onDisconnected: (socket, event) => {
+      console.warn('[实时视频命令 WebSocket] 连接断开', {
+        url: socket.url,
+        status: socket.readyState,
+        event,
+      });
+    },
+    onError: (socket, event) => {
+      console.error('[实时视频命令 WebSocket] 连接失败', {
+        url: socket.url,
+        status: socket.readyState,
+        event,
+      });
+    },
     onMessage: (_ws, event) => {
+      console.log('[实时视频命令 WebSocket] 收到消息', event.data);
       try {
         if (event.data !== 'ping') {
           void handleVideoCommandMessage(JSON.parse(event.data));
@@ -352,10 +373,12 @@
 
   function sendPlayCommand(slotIndex: number, command: VideoCommand) {
     if (videoSocket.status.value !== 'OPEN') {
+      console.warn('[实时视频命令 WebSocket] 连接未就绪，暂存 play 命令', command);
       pendingPlayCommands.set(slotIndex, command);
       return;
     }
 
+    console.log('[实时视频命令 WebSocket] 发送 play 命令', command);
     videoSocket.send(JSON.stringify(command));
     pendingPlayCommands.delete(slotIndex);
     inFlightPlayCommands.set(slotIndex, command);
@@ -404,13 +427,18 @@
     }
 
     if (videoSocket.status.value === 'OPEN') {
-      videoSocket.send(
-        JSON.stringify({
-          cmd: 'stop',
-          cameraCode: slot.cameraCode,
-          windowIndex: String(slot.index),
-        })
-      );
+      const command = {
+        cmd: 'stop',
+        cameraCode: slot.cameraCode,
+        windowIndex: String(slot.index),
+      };
+      console.log('[实时视频命令 WebSocket] 发送 stop 命令', command);
+      videoSocket.send(JSON.stringify(command));
+    } else {
+      console.warn('[实时视频命令 WebSocket] 连接未就绪，无法发送 stop 命令', {
+        cameraCode: slot.cameraCode,
+        windowIndex: String(slot.index),
+      });
     }
   }
 
@@ -460,6 +488,7 @@
       return;
     }
 
+    console.log('[实时视频命令 WebSocket] 开始建立连接', url);
     videoSocket.open(url);
   }
 

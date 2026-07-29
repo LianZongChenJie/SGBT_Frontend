@@ -93,11 +93,15 @@
 </template>
 <script lang="ts" setup>
   import { message } from 'ant-design-vue';
-  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref } from 'vue';
+  import { useWebSocket } from '@vueuse/core';
   import DepartLeftTree from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/components/DepartLeftTree.vue';
   import { useEasyPlayerList } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
   import { useGlobSetting } from '/@/hooks/setting';
   import { setPtzControl } from '@/views/nengyuanzhan/anhuanguanli/shipinjiankong/shishishipin/depart.api';
+  import { useUserStore } from '/@/store/modules/user';
+  import { getToken } from '/@/utils/auth';
+  import md5 from 'crypto-js/md5';
 
   interface VideoTreeNode {
     [key: string]: any;
@@ -130,10 +134,27 @@
     isPlaying: boolean;
   }
 
+  interface VideoCommand {
+    cmd: 'play' | 'stop';
+    cameraCode: string;
+    windowIndex: string;
+    version?: number;
+  }
+
+  interface VideoCommandResult {
+    cmd?: string;
+    status?: string;
+    massage?: string;
+    message?: string;
+    windowIndex?: string | number;
+    url?: string;
+  }
+
   type PlayerControlType = 'hasAudio' | 'MSE' | 'WCS';
 
   const activeKey = ref('2');
   const glob = useGlobSetting();
+  const userStore = useUserStore();
   const leftTree = ref<{ setSelectedNode?: (data: VideoTreeNode, shouldEmit?: boolean) => void } | null>(null);
   const radio = ref(4);
   const radioList = [
@@ -150,7 +171,31 @@
     WCS: false,
   });
   const playerList = ref<PlayerSlot[]>([]);
-  const reconnectVersions = new Map<number, number>();
+  const requestVersions = new Map<number, number>();
+  const pendingPlayCommands = new Map<number, VideoCommand>();
+  const inFlightPlayCommands = new Map<number, VideoCommand>();
+  const videoSocket = useWebSocket('', {
+    immediate: false,
+    autoReconnect: {
+      retries: 10,
+      delay: 5000,
+    },
+    heartbeat: {
+      message: 'ping',
+      interval: 5000,
+    },
+    protocols: [(getToken() || '') as string],
+    onConnected: flushPendingPlayCommands,
+    onMessage: (_ws, event) => {
+      try {
+        if (event.data !== 'ping') {
+          void handleVideoCommandMessage(JSON.parse(event.data));
+        }
+      } catch (error) {
+        console.error('[实时视频] 无法解析命令 WebSocket 消息', error);
+      }
+    },
+  });
 
   const {
     create: createPlayer,
@@ -267,15 +312,11 @@
     return data?.camera === 'true';
   }
 
-  async function setActiveSlot(index: number) {
+  function setActiveSlot(index: number) {
     if (index < 0 || index >= playerList.value.length) {
       return;
     }
     activeSlotIndex.value = index;
-
-    if (getSlot(index)?.cameraCode) {
-      await reconnectSlot(index);
-    }
   }
 
   function findFirstPlayableNode(nodes: VideoTreeNode[] = []): VideoTreeNode | null {
@@ -293,17 +334,133 @@
     return null;
   }
 
-  function withFlvSuffix(url: string) {
-    return url.toLowerCase().endsWith('.flv') ? url : `${url}.flv`;
-  }
-
-  function getVideoWebSocketUrl(cameraCode: string) {
-    if (!cameraCode) {
+  function getVideoCommandSocketUrl() {
+    const token = getToken() || '';
+    const userId = unref(userStore.getUserInfo).id;
+    if (!userId) {
       return '';
     }
 
     const webSocketDomain = glob.domainUrl?.replace('https://', 'wss://').replace('http://', 'ws://');
-    return webSocketDomain ? withFlvSuffix(`${webSocketDomain}/websocket/flv/${encodeURIComponent(cameraCode)}`) : '';
+    const wsClientId = md5(token).toString();
+    return webSocketDomain ? `${webSocketDomain}/websocket/flv/${userId}_${wsClientId}` : '';
+  }
+
+  function getSlotIndexByWindowIndex(windowIndex?: string | number) {
+    return playerList.value.findIndex((slot) => String(slot.index) === String(windowIndex));
+  }
+
+  function sendPlayCommand(slotIndex: number, command: VideoCommand) {
+    if (videoSocket.status.value !== 'OPEN') {
+      pendingPlayCommands.set(slotIndex, command);
+      return;
+    }
+
+    videoSocket.send(JSON.stringify(command));
+    pendingPlayCommands.delete(slotIndex);
+    inFlightPlayCommands.set(slotIndex, command);
+  }
+
+  function flushPendingPlayCommands() {
+    pendingPlayCommands.forEach((command, slotIndex) => {
+      if (!inFlightPlayCommands.has(slotIndex)) {
+        sendPlayCommand(slotIndex, command);
+      }
+    });
+  }
+
+  function requestPlay(slotIndex: number) {
+    const slot = getSlot(slotIndex);
+    if (!slot?.cameraCode) {
+      return;
+    }
+
+    const version = (requestVersions.get(slotIndex) || 0) + 1;
+    requestVersions.set(slotIndex, version);
+    const command: VideoCommand = {
+      cmd: 'play',
+      cameraCode: slot.cameraCode,
+      windowIndex: String(slot.index),
+      version,
+    };
+
+    if (inFlightPlayCommands.has(slotIndex)) {
+      pendingPlayCommands.set(slotIndex, command);
+      return;
+    }
+
+    sendPlayCommand(slotIndex, command);
+  }
+
+  function cancelPlayRequest(slotIndex: number) {
+    requestVersions.set(slotIndex, (requestVersions.get(slotIndex) || 0) + 1);
+    pendingPlayCommands.delete(slotIndex);
+    inFlightPlayCommands.delete(slotIndex);
+  }
+
+  function sendStopCommand(slot: PlayerSlot) {
+    if (!slot.cameraCode) {
+      return;
+    }
+
+    if (videoSocket.status.value === 'OPEN') {
+      videoSocket.send(
+        JSON.stringify({
+          cmd: 'stop',
+          cameraCode: slot.cameraCode,
+          windowIndex: String(slot.index),
+        })
+      );
+    }
+  }
+
+  async function handleVideoCommandMessage(data: VideoCommandResult) {
+    if (data?.cmd !== 'playResult') {
+      return;
+    }
+
+    const slotIndex = getSlotIndexByWindowIndex(data.windowIndex);
+    if (slotIndex < 0) {
+      return;
+    }
+
+    const inFlightCommand = inFlightPlayCommands.get(slotIndex);
+    if (!inFlightCommand) {
+      return;
+    }
+    inFlightPlayCommands.delete(slotIndex);
+
+    const nextCommand = pendingPlayCommands.get(slotIndex);
+    if (nextCommand && nextCommand.version !== inFlightCommand.version) {
+      sendPlayCommand(slotIndex, nextCommand);
+      return;
+    }
+
+    if (data.status !== 'success' || !data.url) {
+      message.error(data.massage || data.message || '获取视频流地址失败');
+      return;
+    }
+
+    const slot = getSlot(slotIndex);
+    if (!slot || requestVersions.get(slotIndex) !== inFlightCommand.version) {
+      return;
+    }
+
+    slot.playUrl = data.url;
+    await destroySlotPlayer(slotIndex);
+    await nextTick();
+    await createPlayerForSlot(slotIndex);
+    await playSlot(slotIndex);
+  }
+
+  function initializeVideoCommandSocket() {
+    const url = getVideoCommandSocketUrl();
+    if (!url) {
+      console.warn('[实时视频] 未生成视频命令 WebSocket 地址');
+      return;
+    }
+
+    videoSocket.open(url);
   }
 
   async function createPlayerForSlot(slotIndex: number) {
@@ -347,7 +504,6 @@
   }
 
   async function destroyAllPlayers() {
-    playerList.value.forEach((_, index) => cancelPendingReconnect(index));
     await destroyPlayers();
     playerList.value.forEach((slot) => {
       slot.player = null;
@@ -392,33 +548,6 @@
     });
   }
 
-  async function reconnectSlot(slotIndex: number) {
-    const slot = getSlot(slotIndex);
-    if (!slot?.cameraCode) {
-      return;
-    }
-
-    const reconnectVersion = (reconnectVersions.get(slotIndex) || 0) + 1;
-    reconnectVersions.set(slotIndex, reconnectVersion);
-
-    await destroySlotPlayer(slotIndex);
-    if (reconnectVersions.get(slotIndex) !== reconnectVersion) {
-      return;
-    }
-
-    await nextTick();
-    await createPlayerForSlot(slotIndex);
-    if (reconnectVersions.get(slotIndex) !== reconnectVersion) {
-      return;
-    }
-
-    await playSlot(slotIndex);
-  }
-
-  function cancelPendingReconnect(slotIndex: number) {
-    reconnectVersions.set(slotIndex, (reconnectVersions.get(slotIndex) || 0) + 1);
-  }
-
   async function initializeSlots() {
     playerList.value = Array.from({ length: radio.value }, (_, index) => createEmptySlot(index + 1));
     activeSlotIndex.value = 0;
@@ -428,6 +557,11 @@
 
   async function rebuildPlayersWithSnapshots(nextCount = radio.value) {
     const preservedSlots = playerList.value.slice(0, Math.min(nextCount, playerList.value.length)).map((slot) => createSlotSnapshot(slot));
+
+    playerList.value.slice(nextCount).forEach((slot, index) => {
+      cancelPlayRequest(nextCount + index);
+      sendStopCommand(slot);
+    });
 
     await destroyAllPlayers();
     playerList.value = Array.from({ length: nextCount }, (_, index) => buildSlot(index + 1, preservedSlots[index]));
@@ -485,9 +619,10 @@
     slot.deviceCode = deviceCode;
     slot.cameraCode = cameraCode;
     slot.cameraName = getCameraName(data);
-    slot.playUrl = getVideoWebSocketUrl(cameraCode);
+    slot.playUrl = '';
 
-    await reconnectSlot(activeSlotIndex.value);
+    await destroySlotPlayer(activeSlotIndex.value);
+    requestPlay(activeSlotIndex.value);
   }
 
   // 云台控制
@@ -513,7 +648,8 @@
       return;
     }
 
-    cancelPendingReconnect(activeSlotIndex.value);
+    sendStopCommand(slot);
+    cancelPlayRequest(activeSlotIndex.value);
     await destroySlotPlayer(activeSlotIndex.value, true);
     await nextTick();
     await createPlayerForSlot(activeSlotIndex.value);
@@ -542,9 +678,15 @@
   }
 
   onMounted(() => {
+    initializeVideoCommandSocket();
     void initializeSlots().then(() => tryResolveDefaultCamera());
   });
   onBeforeUnmount(() => {
+    playerList.value.forEach((slot, index) => {
+      cancelPlayRequest(index);
+      sendStopCommand(slot);
+    });
+    videoSocket.close();
     void destroyAllPlayers();
   });
 </script>

@@ -138,7 +138,6 @@
     cmd: 'play' | 'stop';
     cameraCode: string;
     windowIndex: string;
-    version?: number;
   }
 
   interface VideoCommandResult {
@@ -171,10 +170,11 @@
     WCS: false,
   });
   const playerList = ref<PlayerSlot[]>([]);
-  const requestVersions = new Map<number, number>();
+  const videoCommandSocketUrl = ref('');
   const pendingPlayCommands = new Map<number, VideoCommand>();
   const inFlightPlayCommands = new Map<number, VideoCommand>();
-  const videoSocket = useWebSocket('', {
+  const pendingStopCommands = new Map<string, VideoCommand>();
+  const videoSocket = useWebSocket(videoCommandSocketUrl, {
     immediate: false,
     autoReconnect: {
       retries: 10,
@@ -190,7 +190,7 @@
         url: socket.url,
         status: socket.readyState,
       });
-      flushPendingPlayCommands();
+      flushPendingCommands();
     },
     onDisconnected: (socket, event) => {
       console.warn('[实时视频命令 WebSocket] 连接断开', {
@@ -198,6 +198,10 @@
         status: socket.readyState,
         event,
       });
+      console.warn(
+        `[实时视频命令 WebSocket] 断开详情 code=${event.code} reason=${event.reason || '(empty)'} wasClean=${event.wasClean}`,
+      );
+      inFlightPlayCommands.clear();
     },
     onError: (socket, event) => {
       console.error('[实时视频命令 WebSocket] 连接失败', {
@@ -357,39 +361,88 @@
 
   function getVideoCommandSocketUrl() {
     const token = getToken() || '';
-    const userId = unref(userStore.getUserInfo).id;
-    if (!userId) {
+    const wsClientId = md5(token).toString();
+    const userId = `${unref(userStore.getUserInfo).id}_${wsClientId}`;
+    const webSocketDomain = glob.domainUrl?.replace('https://', 'wss://').replace('http://', 'ws://');
+    if (!webSocketDomain || !userId) {
       return '';
     }
 
-    const webSocketDomain = glob.domainUrl?.replace('https://', 'wss://').replace('http://', 'ws://');
-    const wsClientId = md5(token).toString();
-    return webSocketDomain ? `${webSocketDomain}/websocket/flv/${userId}_${wsClientId}` : '';
+    return `${webSocketDomain}/websocket/flv/${userId}`;
   }
 
-  function getSlotIndexByWindowIndex(windowIndex?: string | number) {
-    return playerList.value.findIndex((slot) => String(slot.index) === String(windowIndex));
-  }
-
-  function sendPlayCommand(slotIndex: number, command: VideoCommand) {
-    if (videoSocket.status.value !== 'OPEN') {
-      console.warn('[实时视频命令 WebSocket] 连接未就绪，暂存 play 命令', command);
-      pendingPlayCommands.set(slotIndex, command);
+  function initializeVideoCommandSocket() {
+    const url = getVideoCommandSocketUrl();
+    if (!url) {
+      console.warn('[实时视频命令 WebSocket] 未生成连接地址', {
+        domainUrl: glob.domainUrl,
+        userId: unref(userStore.getUserInfo).id,
+      });
       return;
     }
 
-    console.log('[实时视频命令 WebSocket] 发送 play 命令', command);
-    videoSocket.send(JSON.stringify(command));
-    pendingPlayCommands.delete(slotIndex);
-    inFlightPlayCommands.set(slotIndex, command);
+    console.log('[实时视频命令 WebSocket] 开始建立连接', url);
+    if (videoCommandSocketUrl.value === url) {
+      if (videoSocket.status.value !== 'OPEN' && videoSocket.status.value !== 'CONNECTING') {
+        videoSocket.open();
+      }
+      return;
+    }
+
+    videoCommandSocketUrl.value = url;
   }
 
-  function flushPendingPlayCommands() {
-    pendingPlayCommands.forEach((command, slotIndex) => {
-      if (!inFlightPlayCommands.has(slotIndex)) {
-        sendPlayCommand(slotIndex, command);
-      }
+  function sendCommand(command: VideoCommand) {
+    const messageText = JSON.stringify(command);
+    if (videoSocket.status.value !== 'OPEN') {
+      console.warn('[实时视频命令 WebSocket] 连接未就绪，命令暂存', {
+        command,
+        socketStatus: videoSocket.status.value,
+        socketUrl: videoCommandSocketUrl.value,
+      });
+      return false;
+    }
+
+    const isSent = videoSocket.send(messageText);
+    console.log('[实时视频命令 WebSocket] 发送命令结果', {
+      isSent,
+      message: messageText,
+      socketStatus: videoSocket.status.value,
+      socketUrl: videoCommandSocketUrl.value,
     });
+    console.log(`[实时视频命令 WebSocket] 实际发送 isSent=${isSent} payload=${messageText}`);
+    return isSent;
+  }
+
+  function sendPlayCommand(slotIndex: number, command: VideoCommand) {
+    const inFlightCommand = inFlightPlayCommands.get(slotIndex);
+    const pendingCommand = pendingPlayCommands.get(slotIndex);
+    if (inFlightCommand?.cameraCode === command.cameraCode && inFlightCommand.windowIndex === command.windowIndex) {
+      console.log('[实时视频命令 WebSocket] 当前窗口已有相同 play 命令发送中，跳过重复发送', command);
+      return;
+    }
+    if (pendingCommand?.cameraCode === command.cameraCode && pendingCommand.windowIndex === command.windowIndex) {
+      console.log('[实时视频命令 WebSocket] 当前窗口已有相同 play 命令待发送，跳过重复发送', command);
+      return;
+    }
+
+    pendingPlayCommands.set(slotIndex, command);
+    initializeVideoCommandSocket();
+
+    if (videoSocket.status.value === 'CONNECTING') {
+      console.log('[实时视频命令 WebSocket] 已暂存 play 命令，等待连接成功后立即发送', {
+        command,
+        socketUrl: videoCommandSocketUrl.value,
+      });
+      return;
+    }
+
+    if (!sendCommand(command)) {
+      return;
+    }
+
+    pendingPlayCommands.delete(slotIndex);
+    inFlightPlayCommands.set(slotIndex, command);
   }
 
   function requestPlay(slotIndex: number) {
@@ -398,27 +451,17 @@
       return;
     }
 
-    const version = (requestVersions.get(slotIndex) || 0) + 1;
-    requestVersions.set(slotIndex, version);
     const command: VideoCommand = {
       cmd: 'play',
       cameraCode: slot.cameraCode,
       windowIndex: String(slot.index),
-      version,
     };
-
-    if (inFlightPlayCommands.has(slotIndex)) {
-      pendingPlayCommands.set(slotIndex, command);
-      return;
-    }
-
+    console.log('[实时视频命令 WebSocket] 准备发送 play 命令', command);
     sendPlayCommand(slotIndex, command);
   }
 
-  function cancelPlayRequest(slotIndex: number) {
-    requestVersions.set(slotIndex, (requestVersions.get(slotIndex) || 0) + 1);
-    pendingPlayCommands.delete(slotIndex);
-    inFlightPlayCommands.delete(slotIndex);
+  function getStopCommandKey(command: VideoCommand) {
+    return `${command.windowIndex}_${command.cameraCode}`;
   }
 
   function sendStopCommand(slot: PlayerSlot) {
@@ -426,20 +469,42 @@
       return;
     }
 
-    if (videoSocket.status.value === 'OPEN') {
-      const command = {
-        cmd: 'stop',
-        cameraCode: slot.cameraCode,
-        windowIndex: String(slot.index),
-      };
-      console.log('[实时视频命令 WebSocket] 发送 stop 命令', command);
-      videoSocket.send(JSON.stringify(command));
-    } else {
-      console.warn('[实时视频命令 WebSocket] 连接未就绪，无法发送 stop 命令', {
-        cameraCode: slot.cameraCode,
-        windowIndex: String(slot.index),
-      });
+    const command: VideoCommand = {
+      cmd: 'stop',
+      cameraCode: slot.cameraCode,
+      windowIndex: String(slot.index),
+    };
+    if (!sendCommand(command)) {
+      pendingStopCommands.set(getStopCommandKey(command), command);
+      return;
     }
+
+    pendingStopCommands.delete(getStopCommandKey(command));
+  }
+
+  function cancelPlayRequest(slotIndex: number) {
+    pendingPlayCommands.delete(slotIndex);
+    inFlightPlayCommands.delete(slotIndex);
+  }
+
+  function flushPendingCommands() {
+    console.log('[实时视频命令 WebSocket] 开始同步待发送命令', {
+      pendingStopCount: pendingStopCommands.size,
+      pendingPlayCount: pendingPlayCommands.size,
+    });
+
+    pendingStopCommands.forEach((command) => {
+      if (sendCommand(command)) {
+        pendingStopCommands.delete(getStopCommandKey(command));
+      }
+    });
+
+    pendingPlayCommands.forEach((command, slotIndex) => {
+      if (sendCommand(command)) {
+        pendingPlayCommands.delete(slotIndex);
+        inFlightPlayCommands.set(slotIndex, command);
+      }
+    });
   }
 
   async function handleVideoCommandMessage(data: VideoCommandResult) {
@@ -447,22 +512,14 @@
       return;
     }
 
-    const slotIndex = getSlotIndexByWindowIndex(data.windowIndex);
+    const slotIndex = playerList.value.findIndex((slot) => String(slot.index) === String(data.windowIndex));
     if (slotIndex < 0) {
+      console.warn('[实时视频命令 WebSocket] 未找到返回消息对应窗口', data);
       return;
     }
 
     const inFlightCommand = inFlightPlayCommands.get(slotIndex);
-    if (!inFlightCommand) {
-      return;
-    }
     inFlightPlayCommands.delete(slotIndex);
-
-    const nextCommand = pendingPlayCommands.get(slotIndex);
-    if (nextCommand && nextCommand.version !== inFlightCommand.version) {
-      sendPlayCommand(slotIndex, nextCommand);
-      return;
-    }
 
     if (data.status !== 'success' || !data.url) {
       message.error(data.massage || data.message || '获取视频流地址失败');
@@ -470,28 +527,31 @@
     }
 
     const slot = getSlot(slotIndex);
-    if (!slot || requestVersions.get(slotIndex) !== inFlightCommand.version) {
+    if (!slot) {
+      return;
+    }
+
+    if (inFlightCommand && inFlightCommand.cameraCode !== slot.cameraCode) {
+      console.warn('[实时视频命令 WebSocket] 忽略过期 playResult', {
+        data,
+        currentCameraCode: slot.cameraCode,
+        inFlightCommand,
+      });
       return;
     }
 
     slot.playUrl = data.url;
+    console.log('[实时视频] 使用后端返回地址播放', {
+      slot: slotIndex + 1,
+      cameraCode: slot.cameraCode,
+      url: slot.playUrl,
+    });
+
     await destroySlotPlayer(slotIndex);
     await nextTick();
     await createPlayerForSlot(slotIndex);
     await playSlot(slotIndex);
   }
-
-  function initializeVideoCommandSocket() {
-    const url = getVideoCommandSocketUrl();
-    if (!url) {
-      console.warn('[实时视频] 未生成视频命令 WebSocket 地址');
-      return;
-    }
-
-    console.log('[实时视频命令 WebSocket] 开始建立连接', url);
-    videoSocket.open(url);
-  }
-
   async function createPlayerForSlot(slotIndex: number) {
     const slot = getSlot(slotIndex);
     if (!slot) {
@@ -643,6 +703,31 @@
     }
 
     const deviceCode = getDeviceCode(data) || cameraCode;
+    const previousCameraCode = slot.cameraCode;
+    const previousWindowIndex = slot.index;
+
+    if (previousCameraCode === cameraCode && slot.playUrl) {
+      hasResolvedDefaultCamera.value = true;
+      if (slot.isPlaying) {
+        console.log('[实时视频] 当前宫格已经在播放该摄像头，跳过重复播放', {
+          slot: slot.index,
+          cameraCode,
+          url: slot.playUrl,
+        });
+        return;
+      }
+      slot.playUrl = '';
+    }
+
+    if (previousCameraCode && previousCameraCode !== cameraCode) {
+      console.log('[实时视频] 当前宫格切换摄像头，先关闭旧播放器连接', {
+        slot: previousWindowIndex,
+        previousCameraCode,
+        nextCameraCode: cameraCode,
+      });
+      sendStopCommand(slot);
+      cancelPlayRequest(activeSlotIndex.value);
+    }
 
     hasResolvedDefaultCamera.value = true;
     slot.deviceCode = deviceCode;
@@ -707,7 +792,6 @@
   }
 
   onMounted(() => {
-    initializeVideoCommandSocket();
     void initializeSlots().then(() => tryResolveDefaultCamera());
   });
   onBeforeUnmount(() => {

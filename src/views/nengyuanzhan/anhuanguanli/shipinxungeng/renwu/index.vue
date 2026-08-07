@@ -93,7 +93,7 @@
       {
         label: '执行巡更任务',
         onClick: handleEdit.bind(null, record),
-        auth: ['operation:operation_video_patrol_task:startTask', 'operation:operation_video_patrol_task:edit'],
+        auth: ['operation:videoPatrolTask:startTask'],
       },
       // {
       //   label: '停止',

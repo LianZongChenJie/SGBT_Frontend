@@ -26,7 +26,11 @@
 
       <div class="control-row">
         <div class="control-actions">
-          <div v-if="patrolRunning" class="radio-item" @click="onClickStop">暂停</div>
+          <div v-if="patrolRunning"
+            class="radio-item"
+            @click="onClickStop"
+            >暂停</div
+          >
           <div v-else class="radio-item" @click="onClickStart">播放</div>
           <div class="radio-item" @click="onMute">{{ isMuted ? '取消静音' : '静音' }}</div>
           <div class="radio-item" @click="setFullscreen">全屏</div>

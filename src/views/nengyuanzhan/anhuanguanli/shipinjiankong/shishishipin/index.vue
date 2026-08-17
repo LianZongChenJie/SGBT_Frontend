@@ -504,6 +504,10 @@
   }
 
   async function handleVideoCommandMessage(data: VideoCommandResult) {
+    if (data?.message === '已停止' || data?.massage === '已停止') {
+      return;
+    }
+
     if (data?.cmd !== 'playResult') {
       return;
     }

@@ -12,7 +12,7 @@
             <a-tab-pane key="2" force-render tab="摄像机组">
               <div class="treeBox">
                 <!--                <Tree :data-source="treeData" @on-select="handleNodeSelect" />-->
-                <DepartLeftTree ref="leftTree" @rootTreeData="onRootTreeData" @select="onTreeSelect" />
+                <DepartLeftTree @select="onTreeSelect" />
               </div>
             </a-tab-pane>
           </a-tabs>
@@ -61,17 +61,12 @@
             </div>
 
             <div class="status-row">
-              <label class="audio-switch">
-                <input :checked="config.hasAudio" type="checkbox" @click.prevent="onUse('hasAudio')" />
-                <span>音频</span>
-              </label>
               <div class="active-slot-info">{{ activeSlotLabel }}</div>
             </div>
 
             <div class="control-row">
               <div class="control-actions">
                 <div class="radio-item" @click="setFullscreen">全屏</div>
-                <div v-if="activeSlotPlaying || activeSlot?.cameraCode" class="radio-item" @click="onStop">注销</div>
               </div>
 
               <div class="radio-container control-screens">
@@ -93,7 +88,7 @@
 </template>
 <script lang="ts" setup>
   import { message } from 'ant-design-vue';
-  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref } from 'vue';
   import { useWebSocket } from '@vueuse/core';
   import DepartLeftTree from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/components/DepartLeftTree.vue';
   import { useEasyPlayerList } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
@@ -149,12 +144,9 @@
     url?: string;
   }
 
-  type PlayerControlType = 'hasAudio' | 'MSE' | 'WCS';
-
   const activeKey = ref('2');
   const glob = useGlobSetting();
   const userStore = useUserStore();
-  const leftTree = ref<{ setSelectedNode?: (data: VideoTreeNode, shouldEmit?: boolean) => void } | null>(null);
   const radio = ref(4);
   const radioList = [
     { label: '单分屏', value: 1 },
@@ -162,14 +154,8 @@
     { label: '九分屏', value: 9 },
   ];
   const activeSlotIndex = ref(0);
-  const rootTreeData = ref<VideoTreeNode[]>([]);
-  const hasResolvedDefaultCamera = ref(false);
-  const config = reactive({
-    hasAudio: true,
-    MSE: false,
-    WCS: false,
-  });
   const playerList = ref<PlayerSlot[]>([]);
+  const manualTargetSlotIndex = ref<number | null>(null);
   const videoCommandSocketUrl = ref('');
   const pendingPlayCommands = new Map<number, VideoCommand>();
   const inFlightPlayCommands = new Map<number, VideoCommand>();
@@ -198,9 +184,7 @@
         status: socket.readyState,
         event,
       });
-      console.warn(
-        `[实时视频命令 WebSocket] 断开详情 code=${event.code} reason=${event.reason || '(empty)'} wasClean=${event.wasClean}`,
-      );
+      console.warn(`[实时视频命令 WebSocket] 断开详情 code=${event.code} reason=${event.reason || '(empty)'} wasClean=${event.wasClean}`);
       inFlightPlayCommands.clear();
     },
     onError: (socket, event) => {
@@ -257,7 +241,6 @@
   }));
 
   const activeSlot = computed(() => playerList.value[activeSlotIndex.value] || null);
-  const activeSlotPlaying = computed(() => Boolean(activeSlot.value?.isPlaying));
   const activeSlotLabel = computed(() => {
     const slot = activeSlot.value;
     if (!slot) {
@@ -342,21 +325,19 @@
       return;
     }
     activeSlotIndex.value = index;
+    manualTargetSlotIndex.value = index;
   }
 
-  function findFirstPlayableNode(nodes: VideoTreeNode[] = []): VideoTreeNode | null {
-    for (const node of nodes) {
-      if (isCameraNode(node)) {
-        return node;
-      }
+  function consumeTargetSlotIndex() {
+    const manualTargetIndex = manualTargetSlotIndex.value;
+    manualTargetSlotIndex.value = null;
 
-      const childNode = findFirstPlayableNode(node.children || []);
-      if (childNode) {
-        return childNode;
-      }
+    if (manualTargetIndex !== null && getSlot(manualTargetIndex)) {
+      return manualTargetIndex;
     }
 
-    return null;
+    const emptySlotIndex = playerList.value.findIndex((slot) => !slot.cameraCode);
+    return emptySlotIndex >= 0 ? emptySlotIndex : 0;
   }
 
   function getVideoCommandSocketUrl() {
@@ -559,9 +540,9 @@
     }
 
     const player = await createPlayer(slotIndex, `player_box${slot.index}`, {
-      MSE: config.MSE,
-      WCS: config.WCS,
-      hasAudio: config.hasAudio,
+      MSE: false,
+      WCS: false,
+      hasAudio: false,
     });
 
     slot.player = player;
@@ -655,6 +636,9 @@
     await destroyAllPlayers();
     playerList.value = Array.from({ length: nextCount }, (_, index) => buildSlot(index + 1, preservedSlots[index]));
     activeSlotIndex.value = Math.min(activeSlotIndex.value, nextCount - 1);
+    if (manualTargetSlotIndex.value !== null && manualTargetSlotIndex.value >= nextCount) {
+      manualTargetSlotIndex.value = null;
+    }
 
     await nextTick();
     await createVisiblePlayers();
@@ -666,35 +650,12 @@
     }
   }
 
-  async function tryResolveDefaultCamera() {
-    if (hasResolvedDefaultCamera.value || !playerList.value.length || rootTreeData.value.length === 0) {
-      return;
-    }
-
-    const firstCamera = findFirstPlayableNode(rootTreeData.value);
-    if (!firstCamera) {
-      return;
-    }
-
-    leftTree.value?.setSelectedNode?.(firstCamera, true);
-  }
-
-  function onRootTreeData(data: VideoTreeNode[]) {
-    rootTreeData.value = Array.isArray(data) ? data : [];
-    void tryResolveDefaultCamera();
-  }
-
   async function onTreeSelect(data: VideoTreeNode) {
     if (!isCameraNode(data)) {
       message.error('请选择摄像头!');
       return;
     }
 
-    const slot = activeSlot.value;
-    if (!slot) {
-      message.error('当前分屏不可用，请重新选择分屏后再试!');
-      return;
-    }
     const cameraCode = getCameraCode(data);
     if (!cameraCode) {
       message.error('未获取到摄像头编码!');
@@ -702,12 +663,19 @@
       return;
     }
 
+    const targetSlotIndex = consumeTargetSlotIndex();
+    const slot = getSlot(targetSlotIndex);
+    if (!slot) {
+      message.error('当前分屏不可用，请重新选择分屏后再试!');
+      return;
+    }
+
+    activeSlotIndex.value = targetSlotIndex;
     const deviceCode = getDeviceCode(data) || cameraCode;
     const previousCameraCode = slot.cameraCode;
     const previousWindowIndex = slot.index;
 
     if (previousCameraCode === cameraCode && slot.playUrl) {
-      hasResolvedDefaultCamera.value = true;
       if (slot.isPlaying) {
         console.log('[实时视频] 当前宫格已经在播放该摄像头，跳过重复播放', {
           slot: slot.index,
@@ -726,17 +694,16 @@
         nextCameraCode: cameraCode,
       });
       sendStopCommand(slot);
-      cancelPlayRequest(activeSlotIndex.value);
+      cancelPlayRequest(targetSlotIndex);
     }
 
-    hasResolvedDefaultCamera.value = true;
     slot.deviceCode = deviceCode;
     slot.cameraCode = cameraCode;
     slot.cameraName = getCameraName(data);
     slot.playUrl = '';
 
-    await destroySlotPlayer(activeSlotIndex.value);
-    requestPlay(activeSlotIndex.value);
+    await destroySlotPlayer(targetSlotIndex);
+    requestPlay(targetSlotIndex);
   }
 
   // 云台控制
@@ -756,31 +723,6 @@
     setPlayerFullscreen(activeSlotIndex.value, true);
   }
 
-  async function onStop() {
-    const slot = activeSlot.value;
-    if (!slot) {
-      return;
-    }
-
-    sendStopCommand(slot);
-    cancelPlayRequest(activeSlotIndex.value);
-    await destroySlotPlayer(activeSlotIndex.value, true);
-    await nextTick();
-    await createPlayerForSlot(activeSlotIndex.value);
-  }
-
-  async function onUse(type: PlayerControlType) {
-    if (type === 'hasAudio') {
-      config.hasAudio = !config.hasAudio;
-      await rebuildPlayersWithSnapshots();
-      return;
-    }
-
-    config.MSE = type === 'MSE';
-    config.WCS = type === 'WCS';
-    await rebuildPlayersWithSnapshots();
-  }
-
   async function onRadio(val: number) {
     const nextCount = Number(val);
     if (nextCount === radio.value) {
@@ -792,7 +734,7 @@
   }
 
   onMounted(() => {
-    void initializeSlots().then(() => tryResolveDefaultCamera());
+    void initializeSlots();
   });
   onBeforeUnmount(() => {
     playerList.value.forEach((slot, index) => {

@@ -34,6 +34,8 @@ export const searchFormSchema: FormSchema[] = [
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
       format: 'YYYY-MM-DD HH:mm:ss',
       disabled: false,
+      getPopupContainer: () => document.body,
+      popupClassName: 'history-date-picker-popup',
     },
   },
   {
@@ -47,6 +49,8 @@ export const searchFormSchema: FormSchema[] = [
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
       format: 'YYYY-MM-DD HH:mm:ss',
       disabled: false,
+      getPopupContainer: () => document.body,
+      popupClassName: 'history-date-picker-popup',
     },
   },
 ];

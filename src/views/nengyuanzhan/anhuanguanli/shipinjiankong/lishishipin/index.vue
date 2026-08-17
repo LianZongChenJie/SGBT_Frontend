@@ -125,6 +125,7 @@
     },
     tableSetting: { fullScreen: true },
     canResize: true,
+    resizeHeightOffset: 110,
     rowKey: 'id',
     actionColumn: {
       width: 80,
@@ -292,7 +293,7 @@
 
   .history-sidebar-card {
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
   }
 
   .player_container {
@@ -384,5 +385,9 @@
   .radio-item:hover {
     color: #07baf4;
     border-color: #07baf4;
+  }
+
+  :global(.history-date-picker-popup) {
+    z-index: 3000;
   }
 </style>

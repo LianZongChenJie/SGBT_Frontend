@@ -36,10 +36,6 @@
             </div>
 
             <div class="status-row">
-              <label class="audio-switch">
-                <input :checked="config.hasAudio" type="checkbox" @click.prevent="onUse('hasAudio')" />
-                <span>音频</span>
-              </label>
               <div class="active-record-info">{{ currentHistoryLabel }}</div>
             </div>
 
@@ -48,9 +44,7 @@
                 <div v-if="isPlaying" class="radio-item" @click="onReplay">重播</div>
                 <div v-else class="radio-item" @click="onPlayer">播放</div>
                 <div class="radio-item" @click="onPause">暂停</div>
-                <div class="radio-item" @click="onMute">{{ isMuted ? '取消静音' : '静音' }}</div>
                 <div class="radio-item" @click="setFullscreen">全屏</div>
-                <div v-if="isPlaying || currentRecord?.url" class="radio-item" @click="onStop">注销</div>
               </div>
             </div>
           </div>
@@ -61,7 +55,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
   import { message } from 'ant-design-vue';
   import DepartLeftTree from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/components/DepartLeftTree.vue';
   import { useEasyPlayer } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
@@ -81,27 +75,17 @@
     url?: string;
   }
 
-  type PlayerControlType = 'hasAudio' | 'MSE' | 'WCS';
-
   const activeKey = ref('2');
   const deviceCode = ref('');
   const videoUrl = ref('');
   const isPlaying = ref(false);
-  const isMuted = ref(false);
   const currentRecord = ref<HistoryRecord | null>(null);
-  const config = reactive({
-    hasAudio: true,
-    isLive: false,
-    MSE: false,
-    WCS: false,
-  });
   const {
     create: createPlayer,
     destroy: destroyPlayer,
     pause: pausePlayer,
     play: playPlayer,
     setFullscreen: setPlayerFullscreen,
-    setMute: setPlayerMute,
   } = useEasyPlayer({
     playbackRate: (rate, player) => {
       player.setRate?.(rate);
@@ -170,7 +154,6 @@
 
   async function resetPlaybackState(options: { clearRecord?: boolean } = {}) {
     isPlaying.value = false;
-    isMuted.value = false;
 
     if (options.clearRecord) {
       currentRecord.value = null;
@@ -190,9 +173,9 @@
   async function createHistoryPlayer() {
     return createPlayer('player_box1', {
       isLive: false,
-      MSE: config.MSE,
-      WCS: config.WCS,
-      hasAudio: config.hasAudio,
+      MSE: false,
+      WCS: false,
+      hasAudio: false,
       hiddenRightMenu: true,
     });
   }
@@ -219,7 +202,6 @@
   async function handleDetail(record: HistoryRecord) {
     currentRecord.value = record;
     videoUrl.value = record.url || '';
-    isMuted.value = false;
     await recreateHistoryPlayer();
     await playHistoryVideo();
   }
@@ -238,11 +220,6 @@
     isPlaying.value = false;
   }
 
-  function onMute() {
-    isMuted.value = !isMuted.value;
-    setPlayerMute(isMuted.value);
-  }
-
   function setFullscreen() {
     setPlayerFullscreen(true);
   }
@@ -253,27 +230,6 @@
       return;
     }
 
-    await recreateHistoryPlayer();
-    await playHistoryVideo();
-  }
-
-  async function onStop() {
-    await resetPlaybackState({ clearRecord: true });
-  }
-
-  async function onUse(type: PlayerControlType) {
-    if (type === 'hasAudio') {
-      config.hasAudio = !config.hasAudio;
-    } else {
-      config.MSE = type === 'MSE';
-      config.WCS = type === 'WCS';
-    }
-
-    if (!isPlaying.value || !currentRecord.value?.url) {
-      return;
-    }
-
-    isMuted.value = false;
     await recreateHistoryPlayer();
     await playHistoryVideo();
   }
@@ -371,18 +327,6 @@
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-  }
-
-  .audio-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    color: #303133;
-  }
-
-  .audio-switch input {
-    cursor: pointer;
   }
 
   .active-record-info {

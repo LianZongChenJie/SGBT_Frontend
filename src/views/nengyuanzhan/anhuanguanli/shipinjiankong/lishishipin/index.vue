@@ -168,7 +168,7 @@
       isLive: false,
       MSE: false,
       WCS: false,
-      hasAudio: false,
+      hasAudio: true,
       hiddenRightMenu: true,
     });
   }

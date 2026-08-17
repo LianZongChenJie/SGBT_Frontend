@@ -1,47 +1,49 @@
 <template>
   <div class="app-container">
     <a-row :gutter="10">
-      <a-col :span="4">
-        <a-card>
-          <a-tabs v-model:activeKey="activeKey" size="small" type="card">
-            <!--            <a-tab-pane key="1" tab="设备列表">-->
-            <!--              <div class="treeBox">-->
-            <!--                <ShebeiList ref="leftTree" @select="onTreeSelect" />-->
-            <!--              </div>-->
-            <!--            </a-tab-pane>-->
-            <a-tab-pane key="2" force-render tab="摄像机组">
-              <div class="treeBox">
-                <!--                <Tree :data-source="treeData" @on-select="handleNodeSelect" />-->
-                <DepartLeftTree @select="onTreeSelect" />
+      <a-col :span="4" class="realtime-sidebar-column">
+        <div class="realtime-sidebar">
+          <a-card class="realtime-tree-card">
+            <a-tabs v-model:activeKey="activeKey" size="small" type="card">
+              <!--            <a-tab-pane key="1" tab="设备列表">-->
+              <!--              <div class="treeBox">-->
+              <!--                <ShebeiList ref="leftTree" @select="onTreeSelect" />-->
+              <!--              </div>-->
+              <!--            </a-tab-pane>-->
+              <a-tab-pane key="2" force-render tab="摄像机组">
+                <div class="treeBox">
+                  <!--                <Tree :data-source="treeData" @on-select="handleNodeSelect" />-->
+                  <DepartLeftTree @select="onTreeSelect" />
+                </div>
+              </a-tab-pane>
+            </a-tabs>
+          </a-card>
+          <a-card class="mt2 realtime-ptz-card" size="small" title="云台控制">
+            <div class="flex justify-around items-start gap-4">
+              <div class="yuanchengBox">
+                <div class="flex justify-center">
+                  <a-button @click="onClickPtzControl('UP')" class="text-white" preIcon="ant-design:up-circle-outlined" type="link"></a-button>
+                </div>
+                <div class="flex justify-between mt3 mb3">
+                  <a-button @click="onClickPtzControl('LEFT')" class="text-white" preIcon="ant-design:left-circle-outlined" type="link"></a-button>
+                  <a-button @click="onClickPtzControl('RIGHT')" class="text-white" preIcon="ant-design:right-circle-outlined" type="link"></a-button>
+                </div>
+                <div class="flex justify-center">
+                  <a-button @click="onClickPtzControl('DOWN')" class="text-white" preIcon="ant-design:down-circle-outlined" type="link"></a-button>
+                </div>
               </div>
-            </a-tab-pane>
-          </a-tabs>
-        </a-card>
-        <a-card class="mt2" size="small" title="云台控制">
-          <div class="flex justify-around items-start gap-4">
-            <div class="yuanchengBox">
-              <div class="flex justify-center">
-                <a-button @click="onClickPtzControl('UP')" class="text-white" preIcon="ant-design:up-circle-outlined" type="link"></a-button>
-              </div>
-              <div class="flex justify-between mt3 mb3">
-                <a-button @click="onClickPtzControl('LEFT')" class="text-white" preIcon="ant-design:left-circle-outlined" type="link"></a-button>
-                <a-button @click="onClickPtzControl('RIGHT')" class="text-white" preIcon="ant-design:right-circle-outlined" type="link"></a-button>
-              </div>
-              <div class="flex justify-center">
-                <a-button @click="onClickPtzControl('DOWN')" class="text-white" preIcon="ant-design:down-circle-outlined" type="link"></a-button>
+              <div>
+                <a-space>
+                  <a-button @click="onClickPtzControl('ZOOM_IN')" preIcon="ant-design:zoom-in-outlined" type="primary"></a-button>
+                  <a-button @click="onClickPtzControl('ZOOM_OUT')" preIcon="ant-design:zoom-out-outlined" type="primary"></a-button>
+                </a-space>
               </div>
             </div>
-            <div>
-              <a-space>
-                <a-button @click="onClickPtzControl('ZOOM_IN')" preIcon="ant-design:zoom-in-outlined" type="primary"></a-button>
-                <a-button @click="onClickPtzControl('ZOOM_OUT')" preIcon="ant-design:zoom-out-outlined" type="primary"></a-button>
-              </a-space>
-            </div>
-          </div>
-        </a-card>
+          </a-card>
+        </div>
       </a-col>
-      <a-col :span="20">
-        <a-card>
+      <a-col :span="20" class="realtime-video-column">
+        <a-card class="realtime-video-card">
           <div class="video-player-panel">
             <div :class="['player_container', `player_container_${radio}`]">
               <div v-for="(item, index) in playerList" :key="item.index" :class="['player_item', { player_item_active: activeSlotIndex === index }]">
@@ -563,7 +565,7 @@
     const player = await createPlayer(slotIndex, `player_box${slot.index}`, {
       MSE: false,
       WCS: false,
-      hasAudio: false,
+      hasAudio: true,
     });
 
     slot.player = player;
@@ -771,15 +773,17 @@
 
 <style lang="less" scoped>
   .app-container {
+    box-sizing: border-box;
+    height: calc(100vh - 110px);
     padding: 10px;
+    overflow: hidden;
 
     :deep(.ant-card-body) {
       padding: 10px;
     }
 
-    .treeBox {
-      height: calc(100vh - 390px);
-      overflow: auto;
+    :deep(> .ant-row) {
+      height: 100%;
     }
 
     .yuanchengBox {
@@ -815,6 +819,8 @@
 
   .player_container {
     display: grid;
+    flex: 1;
+    min-height: 0;
     gap: 8px;
   }
 
@@ -850,7 +856,7 @@
 
   .player_item {
     position: relative;
-    padding-bottom: 56%;
+    min-height: 0;
     background-color: #000;
     border: 2px solid transparent;
     border-radius: 8px;
@@ -925,24 +931,20 @@
   .video-player-panel {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 0;
     gap: 16px;
+    overflow: hidden;
   }
 
   .status-row,
   .control-row {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-  }
-
-  .audio-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    color: #303133;
   }
 
   .control-actions {
@@ -963,12 +965,85 @@
     font-size: 14px;
   }
 
-  .audio-switch input {
-    cursor: pointer;
-  }
-
   .control-actions .radio-item,
   .control-screens .radio-item {
     margin-right: 0;
+  }
+
+  .realtime-sidebar-column,
+  .realtime-video-column {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .realtime-sidebar,
+  .realtime-video-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .realtime-sidebar {
+    overflow: hidden;
+  }
+
+  .realtime-tree-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+
+    :deep(.ant-card-body) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    :deep(.ant-tabs),
+    :deep(.ant-tabs-content-holder),
+    :deep(.ant-tabs-content),
+    :deep(.ant-tabs-tabpane) {
+      min-height: 0;
+    }
+
+    :deep(.ant-tabs),
+    :deep(.ant-tabs-content-holder) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    :deep(.ant-tabs-content),
+    :deep(.ant-tabs-tabpane) {
+      height: 100%;
+    }
+  }
+
+  .treeBox {
+    height: 100%;
+    overflow: auto;
+  }
+
+  .realtime-ptz-card {
+    flex: 0 0 auto;
+  }
+
+  .realtime-video-card {
+    width: 100%;
+    overflow: hidden;
+
+    :deep(.ant-card-body) {
+      box-sizing: border-box;
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
   }
 </style>

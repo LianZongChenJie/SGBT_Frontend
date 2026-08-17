@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <a-row :gutter="10">
-      <a-col :span="6">
-        <a-card>
+      <a-col :span="6" class="history-sidebar-column">
+        <a-card class="history-sidebar-card">
           <a-tabs v-model:activeKey="activeKey" size="small" type="card">
             <a-tab-pane key="2" force-render tab="摄像机组">
               <div class="treeBox">
@@ -242,10 +242,17 @@
 
 <style lang="less" scoped>
   .app-container {
+    box-sizing: border-box;
+    height: calc(100vh - 84px);
     padding: 10px;
+    overflow: hidden;
 
     :deep(.ant-card-body) {
       padding: 10px;
+    }
+
+    :deep(> .ant-row) {
+      height: 100%;
     }
 
     .treeBox {
@@ -265,7 +272,7 @@
 
   .history-player-card {
     width: 100%;
-    height: calc(100vh - 84px);
+    height: 100%;
     box-sizing: border-box;
     overflow: hidden;
 
@@ -278,8 +285,19 @@
 
   .history-player-column {
     display: flex;
-    height: calc(100vh - 84px);
+    height: 100%;
+    min-height: 0;
     overflow: hidden;
+  }
+
+  .history-sidebar-column {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .history-sidebar-card {
+    height: 100%;
+    overflow: auto;
   }
 
   .player_container {

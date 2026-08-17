@@ -23,7 +23,7 @@
         </a-card>
       </a-col>
       <a-col :span="18">
-        <a-card>
+        <a-card class="history-player-card">
           <div class="history-player-panel">
             <div class="player_container player_container_1">
               <div class="player_item">
@@ -257,11 +257,26 @@
   .history-player-panel {
     display: flex;
     flex-direction: column;
+    height: 100%;
+    min-height: 0;
     gap: 16px;
+    overflow: hidden;
+  }
+
+  .history-player-card {
+    height: calc(100vh - 84px);
+    overflow: hidden;
+
+    :deep(.ant-card-body) {
+      height: 100%;
+      overflow: hidden;
+    }
   }
 
   .player_container {
     display: grid;
+    flex: 1;
+    min-height: 0;
   }
 
   .player_container_1 {
@@ -271,7 +286,7 @@
 
   .player_item {
     position: relative;
-    padding-bottom: 68%;
+    height: 100%;
     background-color: #000;
     border: 2px solid transparent;
     border-radius: 8px;

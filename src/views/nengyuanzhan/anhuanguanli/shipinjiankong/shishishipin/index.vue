@@ -118,6 +118,7 @@
     cameraCode: string;
     cameraName: string;
     playUrl: string;
+    streamId: string;
     isPlaying: boolean;
   }
 
@@ -126,6 +127,7 @@
     cameraCode: string;
     cameraName: string;
     playUrl: string;
+    streamId: string;
     isPlaying: boolean;
   }
 
@@ -133,6 +135,7 @@
     cmd: 'play' | 'stop';
     cameraCode: string;
     windowIndex: string;
+    streamId?: string;
   }
 
   interface VideoCommandResult {
@@ -142,6 +145,7 @@
     message?: string;
     windowIndex?: string | number;
     url?: string;
+    streamId?: string;
   }
 
   const activeKey = ref('2');
@@ -262,6 +266,7 @@
       cameraCode: '',
       cameraName: '',
       playUrl: '',
+      streamId: '',
       isPlaying: false,
     };
   }
@@ -272,6 +277,7 @@
       cameraCode: slot?.cameraCode || '',
       cameraName: slot?.cameraName || '',
       playUrl: slot?.playUrl || '',
+      streamId: slot?.streamId || '',
       isPlaying: Boolean(slot?.isPlaying),
     };
   }
@@ -450,10 +456,19 @@
       return;
     }
 
+    if (!slot.streamId) {
+      console.warn('[实时视频命令 WebSocket] 未获取到 streamId，跳过 stop 命令', {
+        cameraCode: slot.cameraCode,
+        windowIndex: String(slot.index),
+      });
+      return;
+    }
+
     const command: VideoCommand = {
       cmd: 'stop',
       cameraCode: slot.cameraCode,
       windowIndex: String(slot.index),
+      streamId: slot.streamId,
     };
     if (!sendCommand(command)) {
       pendingStopCommands.set(getStopCommandKey(command), command);
@@ -522,9 +537,11 @@
     }
 
     slot.playUrl = data.url;
+    slot.streamId = String(data.streamId || '');
     console.log('[实时视频] 使用后端返回地址播放', {
       slot: slotIndex + 1,
       cameraCode: slot.cameraCode,
+      streamId: slot.streamId,
       url: slot.playUrl,
     });
 
@@ -570,6 +587,7 @@
       slot.cameraCode = '';
       slot.cameraName = '';
       slot.playUrl = '';
+      slot.streamId = '';
     }
   }
 
@@ -701,6 +719,7 @@
     slot.cameraCode = cameraCode;
     slot.cameraName = getCameraName(data);
     slot.playUrl = '';
+    slot.streamId = '';
 
     await destroySlotPlayer(targetSlotIndex);
     requestPlay(targetSlotIndex);

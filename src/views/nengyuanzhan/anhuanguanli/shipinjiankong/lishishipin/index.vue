@@ -35,10 +35,6 @@
               </div>
             </div>
 
-            <div class="status-row">
-              <div class="active-record-info">{{ currentHistoryLabel }}</div>
-            </div>
-
             <div class="control-row">
               <div class="control-actions">
                 <div v-if="isPlaying" class="radio-item" @click="onReplay">重播</div>
@@ -321,19 +317,12 @@
     inset: 0;
   }
 
-  .status-row,
   .control-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-  }
-
-  .active-record-info {
-    min-width: 0;
-    color: #606266;
-    font-size: 14px;
   }
 
   .control-actions {

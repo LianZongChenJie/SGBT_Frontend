@@ -108,11 +108,12 @@
     immediate: false,
     columns,
     formConfig: {
-      labelWidth: 70,
+      labelWidth: 90,
       schemas: searchFormSchema,
       autoAdvancedCol: 1,
       actionColOptions: {
-        style: { textAlign: 'left' },
+        span: 24,
+        style: { textAlign: 'left', whiteSpace: 'nowrap' },
       },
       showAdvancedButton: false,
     },

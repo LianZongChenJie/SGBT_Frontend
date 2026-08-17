@@ -4,22 +4,22 @@ export const columns: BasicColumn[] = [
   {
     title: '开始时间',
     dataIndex: 'beginTime',
-    width: 100,
+    width: 180,
     resizable: true,
   },
   {
     title: '结束时间',
     dataIndex: 'endTime',
-    width: 100,
+    width: 180,
     resizable: true,
   },
-  // {
-  //   title: '历史流的路径',
-  //   dataIndex: 'url',
-  //   width: 100,
-  //   resizable: true,
-  //   show:false
-  // },
+  {
+    title: '播放路径',
+    dataIndex: 'url',
+    width: 300,
+    ellipsis: true,
+    resizable: true,
+  },
 ];
 
 export const searchFormSchema: FormSchema[] = [

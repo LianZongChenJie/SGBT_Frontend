@@ -17,22 +17,13 @@
       </div>
 
       <div class="status-row">
-        <label class="audio-switch">
-          <input :checked="playerOptions.hasAudio" type="checkbox" @click.prevent="onUse('hasAudio')" />
-          <span>音频</span>
-        </label>
         <div class="active-device-info">{{ patrolStatusText }}</div>
       </div>
 
       <div class="control-row">
         <div class="control-actions">
-          <div v-if="patrolRunning"
-            class="radio-item"
-            @click="onClickStop"
-            >暂停</div
-          >
+          <div v-if="patrolRunning" class="radio-item" @click="onClickStop">暂停</div>
           <div v-else class="radio-item" @click="onClickStart">播放</div>
-          <div class="radio-item" @click="onMute">{{ isMuted ? '取消静音' : '静音' }}</div>
           <div class="radio-item" @click="setFullscreen">全屏</div>
           <div class="radio-item" @click="onScreenshot">抓拍</div>
         </div>
@@ -47,7 +38,7 @@
   </BasicModal>
 </template>
 <script lang="ts" setup>
-  import { computed, nextTick, onBeforeUnmount, reactive, ref, unref } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, ref, unref } from 'vue';
   import { message, Modal } from 'ant-design-vue';
   import { useEasyPlayer } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
@@ -63,8 +54,6 @@
     streamUrl?: string;
     needCheck?: boolean;
   }
-
-  type PlayerControlType = 'hasAudio' | 'MSE' | 'WCS';
 
   const emit = defineEmits(['register', 'success']);
   const isUpdate = ref(true);
@@ -84,23 +73,9 @@
   const videoUrl = ref('');
   const patrolRunning = ref(false);
   const hasPatrolCompleted = ref(false);
-  const isMuted = ref(false);
   const checkedDeviceCodes = ref<Set<string>>(new Set());
   let timer: ReturnType<typeof setInterval> | null = null;
-  const playerOptions = reactive({
-    hasAudio: true,
-    isLive: true,
-    MSE: false,
-    WCS: false,
-  });
-  const {
-    create: createPlayer,
-    destroy: destroyPlayer,
-    getPlayer,
-    play: playPlayer,
-    setFullscreen: setPlayerFullscreen,
-    setMute: setPlayerMute,
-  } = useEasyPlayer();
+  const { create: createPlayer, destroy: destroyPlayer, getPlayer, play: playPlayer, setFullscreen: setPlayerFullscreen } = useEasyPlayer();
 
   const title = computed(() => (!unref(isUpdate) ? '执行巡更任务' : '执行巡更任务'));
   const showCheckIn = computed(() => Boolean(currentDevice.value?.needCheck));
@@ -131,10 +106,10 @@
 
   function createLivePlayer() {
     return createPlayer('player_box1', {
-      isLive: playerOptions.isLive,
-      MSE: playerOptions.MSE,
-      WCS: playerOptions.WCS,
-      hasAudio: playerOptions.hasAudio,
+      isLive: true,
+      MSE: false,
+      WCS: false,
+      hasAudio: false,
       hiddenRightMenu: true,
     });
   }
@@ -164,7 +139,6 @@
     deviceCode.value = '';
     currentDevice.value = null;
     hasPatrolCompleted.value = false;
-    isMuted.value = false;
     checkedDeviceCodes.value = new Set();
     videoUrl.value = '';
     setModalProps({ confirmLoading: false, showOkBtn: false, showCancelBtn: false });
@@ -246,32 +220,6 @@
   }
   function onClickStop() {
     stopAutoPlay();
-  }
-
-  async function onUse(type: PlayerControlType) {
-    if (type === 'hasAudio') {
-      playerOptions.hasAudio = !playerOptions.hasAudio;
-    } else {
-      playerOptions.MSE = type === 'MSE';
-      playerOptions.WCS = type === 'WCS';
-    }
-
-    await recreateLivePlayer();
-
-    if (videoUrl.value) {
-      void playCurrentVideo();
-    }
-  }
-
-  function onMute() {
-    const player = getPlayer();
-    if (!player) {
-      message.warning('播放器未初始化');
-      return;
-    }
-
-    isMuted.value = !isMuted.value;
-    setPlayerMute(isMuted.value);
   }
 
   function setFullscreen() {
@@ -357,7 +305,6 @@
     deviceCode.value = '';
     currentDevice.value = null;
     hasPatrolCompleted.value = false;
-    isMuted.value = false;
     checkedDeviceCodes.value = new Set();
     videoUrl.value = '';
     await destroyPlayer();
@@ -443,18 +390,6 @@
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
-  }
-
-  .audio-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    color: #303133;
-  }
-
-  .audio-switch input {
-    cursor: pointer;
   }
 
   .active-device-info {

@@ -243,7 +243,7 @@
 <style lang="less" scoped>
   .app-container {
     box-sizing: border-box;
-    height: calc(100vh - 104px);
+    height: calc(100vh - 110px);
     padding: 10px;
     overflow: hidden;
 

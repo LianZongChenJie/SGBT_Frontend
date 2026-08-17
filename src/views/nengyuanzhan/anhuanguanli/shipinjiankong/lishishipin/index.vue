@@ -22,7 +22,7 @@
           </a-card>
         </a-card>
       </a-col>
-      <a-col :span="18">
+      <a-col :span="18" class="history-player-column">
         <a-card class="history-player-card">
           <div class="history-player-panel">
             <div class="player_container player_container_1">
@@ -264,13 +264,22 @@
   }
 
   .history-player-card {
+    width: 100%;
     height: calc(100vh - 84px);
+    box-sizing: border-box;
     overflow: hidden;
 
     :deep(.ant-card-body) {
+      box-sizing: border-box;
       height: 100%;
       overflow: hidden;
     }
+  }
+
+  .history-player-column {
+    display: flex;
+    height: calc(100vh - 84px);
+    overflow: hidden;
   }
 
   .player_container {
@@ -333,6 +342,7 @@
   }
 
   .control-row {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;

@@ -27,8 +27,8 @@ export const searchFormSchema: FormSchema[] = [
     field: 'startTime',
     label: '开始时间',
     component: 'DatePicker',
-    required: false,
-    colProps: {span: 24},
+    required: true,
+    colProps: { span: 24 },
     componentProps: {
       showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
@@ -40,8 +40,8 @@ export const searchFormSchema: FormSchema[] = [
     field: 'endTime',
     label: '结束时间',
     component: 'DatePicker',
-    required: false,
-    colProps: {span: 24},
+    required: true,
+    colProps: { span: 24 },
     componentProps: {
       showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',

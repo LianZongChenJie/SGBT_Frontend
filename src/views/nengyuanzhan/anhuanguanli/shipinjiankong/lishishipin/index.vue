@@ -119,8 +119,9 @@
     return `当前回放：${beginTime} 至 ${endTime}`;
   });
 
-  const [registerTable, { reload }] = useTable({
+  const [registerTable] = useTable({
     api: getDemoList,
+    immediate: false,
     columns,
     formConfig: {
       labelWidth: 70,
@@ -183,7 +184,6 @@
     if (data.camera === 'true') {
       deviceCode.value = data.key || '';
       await resetPlaybackState({ clearRecord: true });
-      void reload();
     }
   }
 

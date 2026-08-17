@@ -3,13 +3,9 @@
     <a-row :gutter="10">
       <a-col :span="6" class="history-sidebar-column">
         <a-card class="history-sidebar-card">
-          <a-tabs v-model:activeKey="activeKey" size="small" type="card">
-            <a-tab-pane key="2" force-render tab="摄像机组">
-              <div class="treeBox">
-                <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
-              </div>
-            </a-tab-pane>
-          </a-tabs>
+          <div class="treeBox">
+            <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
+          </div>
 
           <a-card class="mt2" size="small" title="录像搜索">
             <div>
@@ -71,7 +67,6 @@
     url?: string;
   }
 
-  const activeKey = ref('2');
   const deviceCode = ref('');
   const videoUrl = ref('');
   const isPlaying = ref(false);

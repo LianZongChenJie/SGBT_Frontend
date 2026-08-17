@@ -7,8 +7,8 @@
             <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
           </div>
 
-          <a-card class="mt2" size="small" title="录像搜索">
-            <div>
+          <a-card class="mt2 history-search-card" size="small" title="录像搜索">
+            <div class="history-table-container">
               <BasicTable @register="registerTable">
                 <template #action="{ record }">
                   <TableAction :actions="getActions(record)" />
@@ -252,8 +252,9 @@
     }
 
     .treeBox {
+      flex: 0 0 clamp(220px, 30vh, 280px);
       overflow: auto;
-      height: 400px;
+      height: clamp(220px, 30vh, 280px);
     }
   }
 
@@ -294,6 +295,35 @@
   .history-sidebar-card {
     height: 100%;
     overflow: hidden;
+
+    > :deep(.ant-card-body) {
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .history-search-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+
+    :deep(.ant-card-body) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  .history-table-container {
+    flex: 1;
+    min-height: 0;
   }
 
   .player_container {

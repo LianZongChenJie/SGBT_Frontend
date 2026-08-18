@@ -4,19 +4,9 @@
       <a-col :span="4" class="realtime-sidebar-column">
         <div class="realtime-sidebar">
           <a-card class="realtime-tree-card">
-            <a-tabs v-model:activeKey="activeKey" size="small" type="card">
-              <!--            <a-tab-pane key="1" tab="设备列表">-->
-              <!--              <div class="treeBox">-->
-              <!--                <ShebeiList ref="leftTree" @select="onTreeSelect" />-->
-              <!--              </div>-->
-              <!--            </a-tab-pane>-->
-              <a-tab-pane key="2" force-render tab="摄像机组">
-                <div class="treeBox">
-                  <!--                <Tree :data-source="treeData" @on-select="handleNodeSelect" />-->
-                  <DepartLeftTree @select="onTreeSelect" />
-                </div>
-              </a-tab-pane>
-            </a-tabs>
+            <div class="treeBox">
+              <DepartLeftTree @select="onTreeSelect" />
+            </div>
           </a-card>
           <a-card class="mt2 realtime-ptz-card" size="small" title="云台控制">
             <div class="flex justify-around items-start gap-4">
@@ -150,7 +140,6 @@
     streamId?: string;
   }
 
-  const activeKey = ref('2');
   const glob = useGlobSetting();
   const userStore = useUserStore();
   const radio = ref(4);
@@ -1006,29 +995,11 @@
       min-height: 0;
       overflow: hidden;
     }
-
-    :deep(.ant-tabs),
-    :deep(.ant-tabs-content-holder),
-    :deep(.ant-tabs-content),
-    :deep(.ant-tabs-tabpane) {
-      min-height: 0;
-    }
-
-    :deep(.ant-tabs),
-    :deep(.ant-tabs-content-holder) {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-    }
-
-    :deep(.ant-tabs-content),
-    :deep(.ant-tabs-tabpane) {
-      height: 100%;
-    }
   }
 
   .treeBox {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow: auto;
   }
 

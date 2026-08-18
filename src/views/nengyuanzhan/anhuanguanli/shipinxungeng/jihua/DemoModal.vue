@@ -377,10 +377,11 @@
   }
 
   .patrol-group-field__label {
-    flex: 0 0 120px;
+    flex: 0 0 150px;
     padding-right: 12px;
     color: rgba(0, 0, 0, 0.85);
     text-align: right;
+    white-space: nowrap;
   }
 
   .patrol-group-field__required {

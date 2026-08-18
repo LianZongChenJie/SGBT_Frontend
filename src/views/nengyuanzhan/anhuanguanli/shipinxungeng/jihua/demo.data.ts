@@ -64,16 +64,16 @@ export const searchFormSchema: FormSchema[] = [
     component: 'Input',
     colProps: { span: 8 },
     componentProps: {
-      placeholder:"请输入巡逻计划名称"
+      placeholder: '请输入巡逻计划名称',
     },
   },
-{
+  {
     field: 'startDate',
     label: '开始时间',
     component: 'DatePicker',
     colProps: { span: 8 },
     componentProps: {
-      showTime:false,
+      showTime: false,
       valueFormat: 'YYYY-MM-DD',
     },
   },
@@ -83,12 +83,10 @@ export const searchFormSchema: FormSchema[] = [
     component: 'DatePicker',
     colProps: { span: 8 },
     componentProps: {
-      showTime:false,
+      showTime: false,
       valueFormat: 'YYYY-MM-DD',
     },
   },
-
-
 ];
 
 export const formSchema: FormSchema[] = [
@@ -123,8 +121,8 @@ export const formSchema: FormSchema[] = [
     component: 'DatePicker',
     required: true,
     componentProps: {
-      showTime:false,
-      picker:'date',
+      showTime: false,
+      picker: 'date',
       format: 'YYYY-MM-DD',
       valueFormat: 'YYYY-MM-DD',
       disabledDate: (current: any) => {
@@ -138,8 +136,8 @@ export const formSchema: FormSchema[] = [
     component: 'DatePicker',
     required: true,
     componentProps: {
-      showTime:false,
-      picker:'date',
+      showTime: false,
+      picker: 'date',
       format: 'YYYY-MM-DD',
       valueFormat: 'YYYY-MM-DD',
       disabledDate: (current: any) => {
@@ -151,13 +149,13 @@ export const formSchema: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue:'STOP',
+    defaultValue: 'STOP',
     required: true,
     componentProps: {
       options: [
-        {value: 'STOP',label: '停止'},
-        {value: 'START',label: '启动'},
-      ]
+        { value: 'STOP', label: '停止' },
+        { value: 'START', label: '启动' },
+      ],
       // checkedValue: 'START',      // 选中时的值
       // unCheckedValue: 'STOP',     // 未选中时的值
       // checkedChildren: '启动',
@@ -178,9 +176,9 @@ export const formSchema: FormSchema[] = [
       //分割线标题的位置（left | right | center）
       orientation: 'left',
       //文字是否显示为普通正文样式
-      plain:true,
+      plain: true,
       //水平还是垂直类型（horizontal | vertical）
-      type:'horizontal',
+      type: 'horizontal',
     },
   },
 ];
@@ -208,7 +206,7 @@ export const formSchemaEdit: FormSchema[] = [
     label: '随机互动摄像头数量',
     component: 'InputNumber',
     required: true,
-    suffix:'个',
+    suffix: '个',
     componentProps: {
       style: { width: '100%' },
     },
@@ -218,10 +216,9 @@ export const formSchemaEdit: FormSchema[] = [
     label: '批量修改播放时长为',
     component: 'InputNumber',
     required: true,
-    suffix:'秒',
+    suffix: '秒',
     componentProps: {
       style: { width: '100%' },
     },
   },
-
 ];

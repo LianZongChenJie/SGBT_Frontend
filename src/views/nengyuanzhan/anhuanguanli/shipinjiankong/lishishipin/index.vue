@@ -126,7 +126,7 @@
     tableSetting: { fullScreen: true },
     pagination: false,
     canResize: false,
-    scroll: { y: 'calc(100vh - 550px)' },
+    scroll: { y: 'calc(100vh - 620px)' },
     rowKey: 'id',
     actionColumn: {
       width: 80,
@@ -331,6 +331,8 @@
   }
 
   .history-record-table {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     min-height: 0;
 
@@ -344,7 +346,8 @@
     }
 
     :deep(.ant-table-wrapper) {
-      height: calc(100% - 130px);
+      flex: 1;
+      height: calc(100% - 150px);
       min-height: 0;
       padding: 6px;
       overflow: hidden;
@@ -359,7 +362,7 @@
     }
 
     :deep(.ant-table-body) {
-      max-height: calc(100vh - 550px) !important;
+      max-height: calc(100vh - 620px) !important;
     }
   }
 

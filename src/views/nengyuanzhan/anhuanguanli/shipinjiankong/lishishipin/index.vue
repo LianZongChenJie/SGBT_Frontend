@@ -9,7 +9,7 @@
 
           <a-card class="mt2 history-search-card" size="small" title="录像搜索">
             <div class="history-table-container">
-              <BasicTable @register="registerTable">
+              <BasicTable class="history-record-table" @register="registerTable">
                 <template #action="{ record }">
                   <TableAction :actions="getActions(record)" />
                 </template>
@@ -124,10 +124,9 @@
       fixed: 'left',
     },
     tableSetting: { fullScreen: true },
-    canResize: true,
-    resizeHeightOffset: 110,
-    minHeight: 260,
-    maxHeight: 480,
+    pagination: false,
+    canResize: false,
+    scroll: { y: 'calc(100vh - 500px)' },
     rowKey: 'id',
     actionColumn: {
       width: 80,
@@ -254,9 +253,9 @@
     }
 
     .treeBox {
-      flex: 0 0 clamp(220px, 30vh, 280px);
+      flex: 0 0 clamp(160px, 22vh, 210px);
       overflow: auto;
-      height: clamp(220px, 30vh, 280px);
+      height: clamp(160px, 22vh, 210px);
     }
   }
 
@@ -310,9 +309,11 @@
 
   .history-search-card {
     display: flex;
-    flex: 1;
+    flex: 1 1 auto;
     flex-direction: column;
     min-height: 0;
+    height: calc(100% - clamp(160px, 22vh, 210px) - 8px);
+    overflow: hidden;
 
     :deep(.ant-card-body) {
       display: flex;
@@ -326,6 +327,40 @@
   .history-table-container {
     flex: 1;
     min-height: 0;
+    overflow: hidden;
+  }
+
+  .history-record-table {
+    height: 100%;
+    min-height: 0;
+
+    :deep(.ant-form) {
+      margin-bottom: 6px;
+      padding: 10px 10px 4px;
+    }
+
+    :deep(.ant-form-item) {
+      margin-bottom: 8px;
+    }
+
+    :deep(.ant-table-wrapper) {
+      height: calc(100% - 130px);
+      min-height: 0;
+      padding: 6px;
+      overflow: hidden;
+    }
+
+    :deep(.ant-spin-nested-loading),
+    :deep(.ant-spin-container),
+    :deep(.ant-table),
+    :deep(.ant-table-container) {
+      height: 100%;
+      min-height: 0;
+    }
+
+    :deep(.ant-table-body) {
+      max-height: calc(100vh - 500px) !important;
+    }
   }
 
   .player_container {

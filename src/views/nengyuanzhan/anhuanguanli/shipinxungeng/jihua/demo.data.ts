@@ -1,5 +1,6 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
+import dayjs from 'dayjs';
 // import {render} from '/@/utils/common/renderUtils';
 
 export const columns: BasicColumn[] = [
@@ -126,6 +127,9 @@ export const formSchema: FormSchema[] = [
       picker:'date',
       format: 'YYYY-MM-DD',
       valueFormat: 'YYYY-MM-DD',
+      disabledDate: (current: any) => {
+        return current && current < dayjs().startOf('day');
+      },
     },
   },
   {
@@ -138,6 +142,9 @@ export const formSchema: FormSchema[] = [
       picker:'date',
       format: 'YYYY-MM-DD',
       valueFormat: 'YYYY-MM-DD',
+      disabledDate: (current: any) => {
+        return current && current < dayjs().startOf('day');
+      },
     },
   },
   {

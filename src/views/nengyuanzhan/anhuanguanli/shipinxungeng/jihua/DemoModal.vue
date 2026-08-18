@@ -1,22 +1,25 @@
 <template>
   <BasicModal v-bind="$attrs" @register="registerModal" :title="title" @ok="handleSubmit" width="40%">
     <BasicForm @register="registerForm" :disabled="isDisabled" />
-    <a-row class="ml3">
+    <a-row class="ml3 patrol-group-row">
       <a-col :span="24">
-        <a-tree-select
-          v-model:value="fenzuValue"
-          show-search
-          :multiple="true"
-          :maxTagCount="3"
-          style="width: 100%"
-          :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-          placeholder="调用摄像机组"
-          allow-clear
-          tree-default-expand-all
-          :tree-data="treeData"
-          tree-node-filter-prop="label"
-          :fieldNames="{ children: 'children', label: 'groupName', value: 'id', key: 'id' }"
-        ></a-tree-select>
+        <div class="patrol-group-field">
+          <span class="patrol-group-field__label"><span class="patrol-group-field__required">*</span>调用摄像机组：</span>
+          <a-tree-select
+            v-model:value="fenzuValue"
+            show-search
+            :multiple="true"
+            :maxTagCount="3"
+            class="patrol-group-field__control"
+            :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+            placeholder="调用摄像机组"
+            allow-clear
+            tree-default-expand-all
+            :tree-data="treeData"
+            tree-node-filter-prop="label"
+            :fieldNames="{ children: 'children', label: 'groupName', value: 'id', key: 'id' }"
+          ></a-tree-select>
+        </div>
       </a-col>
     </a-row>
     <!--        <a-button @click="addRenyuan" preIcon="ant-design:plus-outlined" type="primary" class="ml4">添加人员</a-button>-->
@@ -43,6 +46,7 @@
   import { formSchema } from './demo.data';
   import { saveOrUpdateDemo, getDemoById } from './demo.api';
   import { BasicColumn, BasicTable, TableAction, useTable } from '@/components/Table';
+  import { message } from 'ant-design-vue';
   import DemoModalEdit from './DemoModalEdit.vue';
   import { getTreeListShipinjiankongfenzu } from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinjiankongfenzu/demo.api';
   import { getDemoList } from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/demo.api';
@@ -152,6 +156,7 @@
     await resetFields();
     checkedKeys.value = [];
     fenzuValue.value = [];
+    setTableData([]);
     setModalProps({ confirmLoading: false, showOkBtn: !props.isDisabled });
     isUpdate.value = !!data?.isUpdate;
     if (data.createBy) {
@@ -278,10 +283,30 @@
     try {
       let values = await validate();
       let arr = getDataSource();
+      const groups = Array.isArray(fenzuValue.value) ? fenzuValue.value : [];
+      const selectedKeySet = new Set(checkedKeys.value.map((key) => String(key)));
+      const selectedRows = arr.filter((item) => selectedKeySet.has(String(item.id)));
+      const submitRows = unref(isUpdate) && selectedRows.length < 1 ? arr : selectedRows;
+
+      if (!unref(isUpdate)) {
+        if (groups.length < 1) {
+          message.warning('请选择摄像机组');
+          return;
+        }
+        if (arr.length < 1) {
+          message.warning('摄像头列表不能为空');
+          return;
+        }
+        if (selectedRows.length < 1) {
+          message.warning('请勾选需要提交的摄像头');
+          return;
+        }
+      }
+
       values.playDuration = getEditForm.playDuration ?? values.playDuration;
       values.interactionCount = getEditForm.interactionCount ?? values.interactionCount;
-      values.videoGroupIds = (fenzuValue.value || []).join(',');
-      values.deviceItems = arr.map((item, i) => {
+      values.videoGroupIds = groups.join(',');
+      values.deviceItems = submitRows.map((item, i) => {
         return {
           deviceId: item.id,
           sortOrder: i + 1,
@@ -341,3 +366,31 @@
     { deep: true }
   );
 </script>
+<style lang="less" scoped>
+  .patrol-group-row {
+    margin-bottom: 12px;
+  }
+
+  .patrol-group-field {
+    display: flex;
+    align-items: center;
+  }
+
+  .patrol-group-field__label {
+    flex: 0 0 120px;
+    padding-right: 12px;
+    color: rgba(0, 0, 0, 0.85);
+    text-align: right;
+  }
+
+  .patrol-group-field__required {
+    margin-right: 4px;
+    color: #ff4d4f;
+    font-family: SimSun, sans-serif;
+  }
+
+  .patrol-group-field__control {
+    flex: 1;
+    width: 100%;
+  }
+</style>

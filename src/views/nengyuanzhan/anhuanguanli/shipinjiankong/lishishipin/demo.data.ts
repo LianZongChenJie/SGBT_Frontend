@@ -14,6 +14,12 @@ export const columns: BasicColumn[] = [
     resizable: true,
   },
   {
+    title: '文件大小(MB)',
+    dataIndex: 'sizeMb',
+    width: 120,
+    resizable: true,
+  },
+  {
     title: '播放路径',
     dataIndex: 'url',
     width: 300,

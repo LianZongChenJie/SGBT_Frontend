@@ -126,6 +126,8 @@
     tableSetting: { fullScreen: true },
     canResize: true,
     resizeHeightOffset: 110,
+    minHeight: 260,
+    maxHeight: 480,
     rowKey: 'id',
     actionColumn: {
       width: 80,

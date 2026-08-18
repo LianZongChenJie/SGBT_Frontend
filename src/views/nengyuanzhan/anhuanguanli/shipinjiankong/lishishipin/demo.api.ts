@@ -9,6 +9,7 @@ interface HistoryStreamItem {
   backUrl?: string;
   beginTime?: string;
   endTime?: string;
+  size?: number;
 }
 
 interface HistoryStreamResult {
@@ -22,6 +23,15 @@ function formatHistoryTime(value?: string) {
   return String(value || '')
     .replace('T', ' ')
     .replace(/\.\d+(?:Z|[+-]\d{2}:\d{2})?$/, '');
+}
+
+function formatFileSizeMb(value?: number) {
+  const size = Number(value);
+  if (!Number.isFinite(size) || size < 0) {
+    return '';
+  }
+
+  return (size / 1024 / 1024).toFixed(2);
 }
 
 export async function getDemoList(params) {
@@ -44,5 +54,6 @@ export async function getDemoList(params) {
     beginTime: formatHistoryTime(item.beginTime),
     endTime: formatHistoryTime(item.endTime),
     url: item.backUrl || '',
+    sizeMb: formatFileSizeMb(item.size),
   }));
 }

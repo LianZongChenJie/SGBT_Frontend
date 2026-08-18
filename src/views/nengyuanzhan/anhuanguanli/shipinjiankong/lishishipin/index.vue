@@ -126,7 +126,7 @@
     tableSetting: { fullScreen: true },
     pagination: false,
     canResize: false,
-    scroll: { y: 'calc(100vh - 500px)' },
+    scroll: { y: 'calc(100vh - 550px)' },
     rowKey: 'id',
     actionColumn: {
       width: 80,
@@ -359,7 +359,7 @@
     }
 
     :deep(.ant-table-body) {
-      max-height: calc(100vh - 500px) !important;
+      max-height: calc(100vh - 550px) !important;
     }
   }
 

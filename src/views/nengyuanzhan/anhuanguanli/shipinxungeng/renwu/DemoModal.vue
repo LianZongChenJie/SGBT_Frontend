@@ -43,7 +43,9 @@
   import { useEasyPlayer } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicModal, useModal, useModalInner } from '/@/components/Modal';
-  import { getStartTask, saveCheckIn } from './demo.api';
+  import { defHttp } from '/@/utils/http/axios';
+  import { uploadUrl } from '/@/api/common/api';
+  import { completeTask, getStartTask, saveCheckIn } from './demo.api';
   import DemoModalAlarm from './DemoModalAlarm.vue';
 
   const [registerModalAlarm, { openModal: openModalAlarm }] = useModal();
@@ -74,6 +76,7 @@
   const patrolRunning = ref(false);
   const hasPatrolCompleted = ref(false);
   const checkedDeviceCodes = ref<Set<string>>(new Set());
+  const hasCompletedNotified = ref(false);
   let timer: ReturnType<typeof setInterval> | null = null;
   const { create: createPlayer, destroy: destroyPlayer, getPlayer, play: playPlayer, setFullscreen: setPlayerFullscreen } = useEasyPlayer();
 
@@ -139,6 +142,7 @@
     deviceCode.value = '';
     currentDevice.value = null;
     hasPatrolCompleted.value = false;
+    hasCompletedNotified.value = false;
     checkedDeviceCodes.value = new Set();
     videoUrl.value = '';
     setModalProps({ confirmLoading: false, showOkBtn: false, showCancelBtn: false });
@@ -194,7 +198,7 @@
 
         if (nextIndex >= taskArr.value.length) {
           currentIndex.value = taskArr.value.length - 1;
-          stopAutoPlay(true);
+          void completePatrol();
           return;
         }
 
@@ -213,6 +217,31 @@
 
     patrolRunning.value = false;
     hasPatrolCompleted.value = completed;
+  }
+
+  async function completePatrol() {
+    stopAutoPlay(true);
+
+    if (hasCompletedNotified.value) {
+      return;
+    }
+
+    hasCompletedNotified.value = true;
+    try {
+      await completeTask({
+        taskId: taskId.value,
+        taskStatus: 2,
+      });
+      emit('success');
+      Modal.success({
+        title: '提示',
+        content: '用户巡更完成！',
+        okText: '确认',
+      });
+    } catch (error) {
+      hasCompletedNotified.value = false;
+      throw error;
+    }
   }
 
   function onClickStart() {
@@ -240,23 +269,79 @@
     return `${deviceName}_${timestamp}`;
   }
 
-  function onScreenshot() {
+  async function getScreenshotDataUrl() {
     const player = getPlayer();
     if (!player?.screenshot) {
-      message.warning('播放器未初始化');
+      return '';
+    }
+
+    const result = await Promise.resolve(player.screenshot(buildScreenshotFilename(), 'png', 0.92, 'base64'));
+    if (typeof result !== 'string' || !result) {
+      return '';
+    }
+
+    if (result.startsWith('data:image')) {
+      return result;
+    }
+
+    return `data:image/png;base64,${result}`;
+  }
+
+  function dataUrlToFile(dataUrl: string, fileName: string) {
+    const [header, content = ''] = dataUrl.split(',');
+    const mime = header.match(/data:(.*?);base64/)?.[1] || 'image/png';
+    const binary = window.atob(content);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    return new File([bytes], fileName, { type: mime });
+  }
+
+  function downloadScreenshot(dataUrl: string) {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${buildScreenshotFilename()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  async function uploadScreenshot(dataUrl: string) {
+    const file = dataUrlToFile(dataUrl, `${buildScreenshotFilename()}.png`);
+    const result: any = await defHttp.uploadFile(
+      { url: uploadUrl },
+      {
+        file,
+        filename: file.name,
+        data: {
+          biz: 'temp',
+        },
+      },
+      { isReturnResponse: true }
+    );
+
+    if (!result?.success || !result?.message) {
+      throw new Error(result?.message || '截图上传失败');
+    }
+
+    return result.message;
+  }
+
+  async function onScreenshot() {
+    const dataUrl = await getScreenshotDataUrl();
+    if (!dataUrl) {
+      message.warning('抓拍失败，请确认视频已正常播放后重试');
       return;
     }
 
-    const result = player.screenshot(buildScreenshotFilename(), 'png', 0.92, 'download');
-    if (result === null) {
-      message.warning('抓拍失败，请稍后重试');
-      return;
-    }
-
+    downloadScreenshot(dataUrl);
     message.success('抓拍已开始下载');
   }
 
-  function clickOpenAlarm() {
+  async function clickOpenAlarm() {
     onClickStop();
 
     if (!currentDevice.value?.deviceCode) {
@@ -264,10 +349,24 @@
       return;
     }
 
+    let imageUrl = '';
+    const dataUrl = await getScreenshotDataUrl();
+    if (dataUrl) {
+      try {
+        imageUrl = await uploadScreenshot(dataUrl);
+      } catch (error) {
+        console.error('告警自动截图上传失败', error);
+        message.warning('自动截图上传失败，请手动上传图片');
+      }
+    } else {
+      message.warning('自动截图失败，请手动上传图片');
+    }
+
     openModalAlarm(true, {
       taskId: taskId.value,
       cameraCode: currentDevice.value.deviceCode,
       deviceName: currentDevice.value.deviceName,
+      imageUrl,
       isUpdate: true,
     });
   }
@@ -305,6 +404,7 @@
     deviceCode.value = '';
     currentDevice.value = null;
     hasPatrolCompleted.value = false;
+    hasCompletedNotified.value = false;
     checkedDeviceCodes.value = new Set();
     videoUrl.value = '';
     await destroyPlayer();

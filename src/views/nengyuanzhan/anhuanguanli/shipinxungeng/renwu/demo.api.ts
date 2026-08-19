@@ -11,6 +11,7 @@ enum Api {
   exportXls = '/operation/videoPatrolTask/exportTemplate',
   importExcel = '/operation/videoPatrolTask/importExcel',
   startTask = '/operation/videoPatrolTask/startTask',
+  complete = '/operation/videoPatrolTask/complete',
   submitAlarm = '/operation/videoPatrolTask/submitAlarm',
   checkIn = '/operation/videoPatrolTask/checkIn',
   eventNames = '/operation/videoPatrolTask/eventNames',
@@ -65,6 +66,9 @@ export const getDemoById = (params) => {
 };
 export const getStartTask = (params) => {
     return defHttp.get({url: Api.startTask, params});
+};
+export const completeTask = (params) => {
+  return defHttp.post({ url: Api.complete, params });
 };
 
 /**

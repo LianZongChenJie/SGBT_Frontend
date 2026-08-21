@@ -11,6 +11,12 @@ interface EasyPlayerOptions {
   WCS?: boolean;
   hasAudio?: boolean;
   hiddenRightMenu?: boolean;
+  playbackConfig?: {
+    /** simple 模式使用相对时长进度条，适合固定 MP4 点播文件。 */
+    controlType?: 'normal' | 'simple';
+    /** 固定录像文件的时长，单位：秒。 */
+    duration?: number;
+  };
   watermark?: {
     text: {
       content: string;

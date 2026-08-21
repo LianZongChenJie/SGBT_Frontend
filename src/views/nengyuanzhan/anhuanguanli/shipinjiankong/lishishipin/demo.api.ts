@@ -3,6 +3,7 @@ import { defHttp } from '/@/utils/http/axios';
 enum Api {
   list = '/operation/videoDevice/getUrl',
   playbackOpen = '/operation/video/playback/open',
+  playbackStatus = '/operation/video/playback/status',
   playbackClose = '/operation/video/playback/close',
 }
 
@@ -65,13 +66,20 @@ export interface PlaybackOpenRequest {
 export interface PlaybackOpenResponse {
   playbackId: string;
   stream?: string;
+  /** GENERATING：生成中；READY：可点播；FAILED：失败；CLOSED：已关闭 */
+  status?: 'GENERATING' | 'READY' | 'FAILED' | 'CLOSED' | string;
+  /** 仅在 READY 时返回的固定 MP4 点播地址。 */
   mp4Url?: string;
-  wsFlvUrl?: string;
-  httpFlvUrl?: string;
+  /** 仅在 READY 时返回的实际录像时长，单位：秒。 */
+  durationSeconds?: number;
 }
 
 export function openHistoryPlayback(data: PlaybackOpenRequest) {
   return defHttp.post<PlaybackOpenResponse>({ url: Api.playbackOpen, params: data });
+}
+
+export function getHistoryPlaybackStatus(playbackId: string) {
+  return defHttp.get<PlaybackOpenResponse>({ url: `${Api.playbackStatus}/${playbackId}` });
 }
 
 export function closeHistoryPlayback(playbackId: string) {

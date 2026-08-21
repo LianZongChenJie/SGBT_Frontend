@@ -56,7 +56,7 @@
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicTable, TableAction, useTable } from '/@/components/Table';
   import { columns, searchFormSchema } from './demo.data';
-  import { closeHistoryPlayback, getDemoList, openHistoryPlayback } from './demo.api';
+  import { closeHistoryPlayback, getDemoList, getHistoryPlaybackStatus, openHistoryPlayback, type PlaybackOpenResponse } from './demo.api';
 
   interface VideoTreeNode {
     key?: string;
@@ -76,21 +76,11 @@
   const videoUrl = ref('');
   const isPlaying = ref(false);
   const playbackId = ref('');
+  const playbackDuration = ref<number>();
   const currentRecord = ref<HistoryRecord | null>(null);
-  const {
-    create: createPlayer,
-    destroy: destroyPlayer,
-    pause: pausePlayer,
-    play: playPlayer,
-    setFullscreen: setPlayerFullscreen,
-  } = useEasyPlayer({
-    playbackRate: (rate, player) => {
-      player.setRate?.(rate);
-    },
-    playbackSeek: (time) => {
-      seekHistoryVideo(Number(time));
-    },
-  });
+  // 每次创建或释放回放会话都会更新版本号，避免旧轮询覆盖当前选择的录像。
+  let playbackSessionVersion = 0;
+  const { create: createPlayer, destroy: destroyPlayer, pause: pausePlayer, play: playPlayer, setFullscreen: setPlayerFullscreen } = useEasyPlayer();
 
   const currentHistoryLabel = computed(() => {
     const record = currentRecord.value;
@@ -184,6 +174,7 @@
     if (options.clearRecord) {
       currentRecord.value = null;
       videoUrl.value = '';
+      playbackDuration.value = undefined;
     }
 
     await recreateHistoryPlayer();
@@ -203,6 +194,11 @@
       WCS: false,
       hasAudio: true,
       hiddenRightMenu: true,
+      playbackConfig: {
+        // 固定 MP4 点播文件由 EasyPlayer 原生进度条负责定位，避免按 HLS 回放时间轴换算。
+        controlType: 'simple',
+        duration: playbackDuration.value || 0,
+      },
     });
   }
 
@@ -225,29 +221,6 @@
     });
   }
 
-  function seekHistoryVideo(time: number) {
-    if (!Number.isFinite(time) || time < 0) return;
-    const video = document.querySelector<HTMLVideoElement>('#player_box1 video');
-    if (!video) return;
-
-    let targetTime = time;
-    const { seekable } = video;
-    if (seekable.length > 0) {
-      const rangeStart = seekable.start(0);
-      const rangeEnd = seekable.end(seekable.length - 1);
-      // MP4 代理可能是逐步生成的，拖动范围必须限制在浏览器已经可寻址的时间段内。
-      targetTime = Math.min(Math.max(targetTime, rangeStart), Math.max(rangeStart, rangeEnd - 0.1));
-    } else if (Number.isFinite(video.duration) && video.duration > 0) {
-      targetTime = Math.min(targetTime, Math.max(0, video.duration - 0.1));
-    } else {
-      return;
-    }
-
-    if (Math.abs(video.currentTime - targetTime) > 0.05) {
-      video.currentTime = targetTime;
-    }
-  }
-
   async function handleDetail(record: HistoryRecord) {
     if (!deviceCode.value) {
       message.warning('请先选择摄像头');
@@ -264,6 +237,10 @@
     }
     if (!playbackId.value) {
       await openPlaybackProxy(currentRecord.value);
+      return;
+    }
+    if (!videoUrl.value) {
+      message.warning('录像文件正在生成，请等待生成完成后再播放');
       return;
     }
     await playHistoryVideo();
@@ -294,31 +271,72 @@
 
     await releasePlaybackProxy();
     isPlaying.value = false;
+    videoUrl.value = '';
+    playbackDuration.value = undefined;
+    const sessionVersion = ++playbackSessionVersion;
     try {
-      const playback = await openHistoryPlayback({
+      const openResult = await openHistoryPlayback({
         cameraIndexCode: deviceCode.value,
         beginTime: record.beginTime,
         endTime: record.endTime,
         recordLocation: 0,
         streamType: 1,
       });
-      const streamUrl = normalizeVideoStreamUrl(playback.mp4Url || playback.wsFlvUrl || playback.httpFlvUrl);
-      if (!playback.playbackId || !streamUrl) {
-        throw new Error('未获取到历史回放播放地址');
+      if (!openResult.playbackId) {
+        throw new Error('未获取到历史回放任务ID');
       }
-      playbackId.value = playback.playbackId;
+      playbackId.value = openResult.playbackId;
+      const playback = await waitForPlaybackReady(openResult, sessionVersion);
+      if (!playback || sessionVersion !== playbackSessionVersion) return;
+
+      const streamUrl = normalizeVideoStreamUrl(playback.mp4Url);
+      if (!streamUrl) {
+        throw new Error('录像生成完成，但未获取到 MP4 点播地址');
+      }
+      playbackDuration.value = Number(playback.durationSeconds) || undefined;
       videoUrl.value = streamUrl;
       await recreateHistoryPlayer();
       await playHistoryVideo(streamUrl);
     } catch (error) {
-      await releasePlaybackProxy();
-      message.error(error instanceof Error ? error.message : '创建历史回放失败');
+      if (sessionVersion === playbackSessionVersion) {
+        await releasePlaybackProxy();
+        message.error(error instanceof Error ? error.message : '创建历史回放失败');
+      }
     }
   }
 
+  async function waitForPlaybackReady(initialResult: PlaybackOpenResponse, sessionVersion: number) {
+    let playback = initialResult;
+    // 录像切片和固定 MP4 文件生成通常需要数秒；超时后保留可重新点击“播放”的机会。
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      if (sessionVersion !== playbackSessionVersion) return null;
+
+      if (playback.status === 'READY') {
+        return playback;
+      }
+      if (playback.status === 'FAILED') {
+        throw new Error('历史录像生成失败');
+      }
+      if (playback.status === 'CLOSED') {
+        throw new Error('历史录像生成任务已关闭');
+      }
+
+      await wait(1000);
+      if (sessionVersion !== playbackSessionVersion) return null;
+      playback = await getHistoryPlaybackStatus(playback.playbackId);
+    }
+    throw new Error('历史录像生成超时，请稍后重试');
+  }
+
+  function wait(duration: number) {
+    return new Promise<void>((resolve) => window.setTimeout(resolve, duration));
+  }
+
   async function releasePlaybackProxy() {
+    playbackSessionVersion += 1;
     const activePlaybackId = playbackId.value;
     playbackId.value = '';
+    playbackDuration.value = undefined;
     if (!activePlaybackId) return;
     try {
       await closeHistoryPlayback(activePlaybackId);

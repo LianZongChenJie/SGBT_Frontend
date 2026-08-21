@@ -65,6 +65,7 @@ export interface PlaybackOpenRequest {
 export interface PlaybackOpenResponse {
   playbackId: string;
   stream?: string;
+  mp4Url?: string;
   wsFlvUrl?: string;
   httpFlvUrl?: string;
 }

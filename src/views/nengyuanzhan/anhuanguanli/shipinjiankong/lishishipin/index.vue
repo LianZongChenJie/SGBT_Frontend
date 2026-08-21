@@ -38,7 +38,6 @@
                 <div v-if="isPlaying" class="radio-item" @click="onReplay">重播</div>
                 <div v-else class="radio-item" @click="onPlayer">播放</div>
                 <div class="radio-item" @click="onPause">暂停</div>
-                <div v-if="playbackId" class="radio-item" @click="onStop">停止</div>
                 <div class="radio-item" @click="setFullscreen">全屏</div>
               </div>
             </div>
@@ -87,6 +86,9 @@
   } = useEasyPlayer({
     playbackRate: (rate, player) => {
       player.setRate?.(rate);
+    },
+    playbackSeek: (time) => {
+      seekHistoryVideo(Number(time));
     },
   });
 
@@ -223,6 +225,29 @@
     });
   }
 
+  function seekHistoryVideo(time: number) {
+    if (!Number.isFinite(time) || time < 0) return;
+    const video = document.querySelector<HTMLVideoElement>('#player_box1 video');
+    if (!video) return;
+
+    let targetTime = time;
+    const { seekable } = video;
+    if (seekable.length > 0) {
+      const rangeStart = seekable.start(0);
+      const rangeEnd = seekable.end(seekable.length - 1);
+      // MP4 代理可能是逐步生成的，拖动范围必须限制在浏览器已经可寻址的时间段内。
+      targetTime = Math.min(Math.max(targetTime, rangeStart), Math.max(rangeStart, rangeEnd - 0.1));
+    } else if (Number.isFinite(video.duration) && video.duration > 0) {
+      targetTime = Math.min(targetTime, Math.max(0, video.duration - 0.1));
+    } else {
+      return;
+    }
+
+    if (Math.abs(video.currentTime - targetTime) > 0.05) {
+      video.currentTime = targetTime;
+    }
+  }
+
   async function handleDetail(record: HistoryRecord) {
     if (!deviceCode.value) {
       message.warning('请先选择摄像头');
@@ -247,14 +272,6 @@
   function onPause() {
     pausePlayer();
     isPlaying.value = false;
-  }
-
-  async function onStop() {
-    pausePlayer();
-    isPlaying.value = false;
-    videoUrl.value = '';
-    await releasePlaybackProxy();
-    await recreateHistoryPlayer();
   }
 
   function setFullscreen() {
@@ -285,7 +302,7 @@
         recordLocation: 0,
         streamType: 1,
       });
-      const streamUrl = normalizeVideoStreamUrl(playback.wsFlvUrl || playback.httpFlvUrl);
+      const streamUrl = normalizeVideoStreamUrl(playback.mp4Url || playback.wsFlvUrl || playback.httpFlvUrl);
       if (!playback.playbackId || !streamUrl) {
         throw new Error('未获取到历史回放播放地址');
       }

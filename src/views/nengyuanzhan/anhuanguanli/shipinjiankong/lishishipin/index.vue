@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="app-container">
     <a-row :gutter="10">
@@ -36,6 +37,7 @@
                 <div v-if="isPlaying" class="radio-item" @click="onReplay">重播</div>
                 <div v-else class="radio-item" @click="onPlayer">播放</div>
                 <div class="radio-item" @click="onPause">暂停</div>
+                <div v-if="playbackId" class="radio-item" @click="onStop">停止</div>
                 <div class="radio-item" @click="setFullscreen">全屏</div>
               </div>
             </div>
@@ -46,14 +48,15 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup name="lishishipin">
   import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
   import { message } from 'ant-design-vue';
   import DepartLeftTree from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/components/DepartLeftTree.vue';
   import { useEasyPlayer } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
+  import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicTable, TableAction, useTable } from '/@/components/Table';
   import { columns, searchFormSchema } from './demo.data';
-  import { getDemoList } from './demo.api';
+  import { closeHistoryPlayback, getDemoList, openHistoryPlayback } from './demo.api';
 
   interface VideoTreeNode {
     key?: string;
@@ -64,12 +67,12 @@
     id?: string | number;
     beginTime?: string;
     endTime?: string;
-    url?: string;
   }
 
   const deviceCode = ref('');
   const videoUrl = ref('');
   const isPlaying = ref(false);
+  const playbackId = ref('');
   const currentRecord = ref<HistoryRecord | null>(null);
   const {
     create: createPlayer,
@@ -85,7 +88,7 @@
 
   const currentHistoryLabel = computed(() => {
     const record = currentRecord.value;
-    if (!record?.url) {
+    if (!record) {
       return '当前回放：未选择录像';
     }
 
@@ -148,6 +151,7 @@
 
   async function resetPlaybackState(options: { clearRecord?: boolean } = {}) {
     isPlaying.value = false;
+    await releasePlaybackProxy();
 
     if (options.clearRecord) {
       currentRecord.value = null;
@@ -194,18 +198,23 @@
   }
 
   async function handleDetail(record: HistoryRecord) {
+    if (!deviceCode.value) {
+      message.warning('请先选择摄像头');
+      return;
+    }
     currentRecord.value = record;
-    videoUrl.value = record.url || '';
-    await recreateHistoryPlayer();
-    await playHistoryVideo();
+    await openPlaybackProxy(record);
   }
 
   async function onPlayer() {
-    if (!currentRecord.value?.url) {
+    if (!currentRecord.value) {
       message.warning('请先选择录像记录');
       return;
     }
-
+    if (!playbackId.value) {
+      await openPlaybackProxy(currentRecord.value);
+      return;
+    }
     await playHistoryVideo();
   }
 
@@ -214,18 +223,65 @@
     isPlaying.value = false;
   }
 
+  async function onStop() {
+    pausePlayer();
+    isPlaying.value = false;
+    videoUrl.value = '';
+    await releasePlaybackProxy();
+    await recreateHistoryPlayer();
+  }
+
   function setFullscreen() {
     setPlayerFullscreen(true);
   }
 
   async function onReplay() {
-    if (!currentRecord.value?.url) {
+    if (!currentRecord.value) {
       message.warning('请先选择录像记录');
       return;
     }
+    await openPlaybackProxy(currentRecord.value);
+  }
 
-    await recreateHistoryPlayer();
-    await playHistoryVideo();
+  async function openPlaybackProxy(record: HistoryRecord) {
+    if (!record.beginTime || !record.endTime) {
+      message.warning('录像时间段不完整，无法播放');
+      return;
+    }
+
+    await releasePlaybackProxy();
+    isPlaying.value = false;
+    try {
+      const playback = await openHistoryPlayback({
+        cameraIndexCode: deviceCode.value,
+        beginTime: record.beginTime,
+        endTime: record.endTime,
+        recordLocation: 0,
+        streamType: 1,
+      });
+      const streamUrl = normalizeVideoStreamUrl(playback.wsFlvUrl || playback.httpFlvUrl);
+      if (!playback.playbackId || !streamUrl) {
+        throw new Error('未获取到历史回放播放地址');
+      }
+      playbackId.value = playback.playbackId;
+      videoUrl.value = streamUrl;
+      await recreateHistoryPlayer();
+      await playHistoryVideo(streamUrl);
+    } catch (error) {
+      await releasePlaybackProxy();
+      message.error(error instanceof Error ? error.message : '创建历史回放失败');
+    }
+  }
+
+  async function releasePlaybackProxy() {
+    const activePlaybackId = playbackId.value;
+    playbackId.value = '';
+    if (!activePlaybackId) return;
+    try {
+      await closeHistoryPlayback(activePlaybackId);
+    } catch (error) {
+      console.warn('关闭历史回放代理失败', error);
+    }
   }
 
   onMounted(() => {
@@ -233,6 +289,7 @@
   });
 
   onBeforeUnmount(() => {
+    void releasePlaybackProxy();
     void destroyPlayer();
   });
 </script>

@@ -2,6 +2,8 @@ import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
   list = '/operation/videoDevice/getUrl',
+  playbackOpen = '/operation/video/playback/open',
+  playbackClose = '/operation/video/playback/close',
 }
 
 interface HistoryStreamItem {
@@ -17,12 +19,6 @@ interface HistoryStreamResult {
   beginTime?: string;
   endTime?: string;
   list?: HistoryStreamItem[];
-}
-
-function formatHistoryTime(value?: string) {
-  return String(value || '')
-    .replace('T', ' ')
-    .replace(/\.\d+(?:Z|[+-]\d{2}:\d{2})?$/, '');
 }
 
 function formatFileSizeMb(value?: number) {
@@ -51,9 +47,32 @@ export async function getDemoList(params) {
 
   return records.map((item, index) => ({
     id: item.id || `${item.beginTime || ''}-${item.endTime || ''}-${index}`,
-    beginTime: formatHistoryTime(item.beginTime),
-    endTime: formatHistoryTime(item.endTime),
-    url: item.backUrl || '',
+    // 回放时间必须保持海康接口返回的原始格式，避免二次格式化改变实际录像时间段。
+    beginTime: item.beginTime || '',
+    endTime: item.endTime || '',
     sizeMb: formatFileSizeMb(item.size),
   }));
+}
+
+export interface PlaybackOpenRequest {
+  cameraIndexCode: string;
+  beginTime: string;
+  endTime: string;
+  recordLocation?: 0 | 1;
+  streamType?: 0 | 1;
+}
+
+export interface PlaybackOpenResponse {
+  playbackId: string;
+  stream?: string;
+  wsFlvUrl?: string;
+  httpFlvUrl?: string;
+}
+
+export function openHistoryPlayback(data: PlaybackOpenRequest) {
+  return defHttp.post<PlaybackOpenResponse>({ url: Api.playbackOpen, params: data });
+}
+
+export function closeHistoryPlayback(playbackId: string) {
+  return defHttp.post({ url: Api.playbackClose, params: { playbackId } });
 }

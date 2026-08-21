@@ -19,13 +19,6 @@ export const columns: BasicColumn[] = [
     width: 120,
     resizable: true,
   },
-  {
-    title: '播放路径',
-    dataIndex: 'url',
-    width: 300,
-    ellipsis: true,
-    resizable: true,
-  },
 ];
 
 export const searchFormSchema: FormSchema[] = [

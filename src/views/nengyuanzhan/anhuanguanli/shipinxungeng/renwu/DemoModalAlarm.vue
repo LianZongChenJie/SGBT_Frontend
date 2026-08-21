@@ -9,6 +9,8 @@
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { formSchema } from './demo.data';
   import { getQueryByCode, saveSubmitAlarm } from './demo.api';
+  import { defHttp } from '/@/utils/http/axios';
+  import { uploadUrl } from '/@/api/common/api';
   // 声明Emits
   const emit = defineEmits(['register', 'success']);
   const isUpdate = ref(true);
@@ -41,21 +43,51 @@
       await setFieldsValue({ createTime: data.createTime });
     }
     if (unref(isUpdate)) {
-      let aa = await getQueryByCode({ deviceCode: data.cameraCode });
-      data.location = aa.location;
+      const device = await getQueryByCode({ deviceCode: data.cameraCode });
       await setFieldsValue({
         ...data,
+        location: device.location,
+        imageUrl: data.imageUrl || '',
       });
     }
   });
   //设置标题
   const title = computed(() => (!unref(isUpdate) ? '发起告警' : '发起告警'));
 
+  function dataUrlToFile(dataUrl: string) {
+    const [header, content = ''] = dataUrl.split(',');
+    const mime = header.match(/data:(.*?);base64/)?.[1] || 'image/jpeg';
+    const binary = window.atob(content);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return new File([bytes], `alarm_screenshot_${Date.now()}.jpeg`, { type: mime });
+  }
+
+  async function uploadScreenshotBeforeSubmit(dataUrl: string) {
+    const file = dataUrlToFile(dataUrl);
+    const response: any = await defHttp.uploadFile(
+      { url: uploadUrl },
+      { file, filename: file.name, data: { biz: 'temp' } },
+      { isReturnResponse: true }
+    );
+    const payload = response?.data || response;
+    const imageUrl = payload?.result || payload?.url || payload?.message || '';
+    if (payload?.success === false || !imageUrl) {
+      throw new Error(payload?.message || '告警截图上传失败');
+    }
+    return String(imageUrl);
+  }
+
   //表单提交事件
   async function handleSubmit() {
     try {
-      let values = await validate();
+      const values = await validate();
       setModalProps({ confirmLoading: true });
+      if (typeof values.imageUrl === 'string' && values.imageUrl.startsWith('data:image/')) {
+        values.imageUrl = await uploadScreenshotBeforeSubmit(values.imageUrl);
+      }
       //提交表单
       await saveSubmitAlarm(values);
       //关闭弹窗

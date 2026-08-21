@@ -1,8 +1,6 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
-import {
-  getTreeListGaojingdengji,
-} from '@/views/nengyuanzhan/anhuanguanli/gaojingzhongxin/gaojingguize/demo.api';
+import { getTreeListGaojingdengji } from '@/views/nengyuanzhan/anhuanguanli/gaojingzhongxin/gaojingguize/demo.api';
 import { getEventNames, getEventTypes } from '@/views/nengyuanzhan/anhuanguanli/shipinxungeng/renwu/demo.api';
 // import {render} from '/@/utils/common/renderUtils';
 
@@ -18,7 +16,8 @@ export const columns: BasicColumn[] = [
     dataIndex: 'planStartTime',
     width: 130,
     resizable: true,
-  },{
+  },
+  {
     title: '开始时间',
     dataIndex: 'actualStartTime',
     width: 130,
@@ -42,7 +41,6 @@ export const columns: BasicColumn[] = [
     width: 140,
     resizable: true,
   },
-
 
   {
     title: '状态',
@@ -83,7 +81,7 @@ export const searchFormSchema: FormSchema[] = [
     component: 'DatePicker',
     colProps: { span: 8 },
     componentProps: {
-      showTime:true,
+      showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
     },
   },
@@ -93,11 +91,10 @@ export const searchFormSchema: FormSchema[] = [
     component: 'DatePicker',
     colProps: { span: 8 },
     componentProps: {
-      showTime:true,
+      showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
     },
   },
-
 ];
 
 export const formSchema: FormSchema[] = [
@@ -129,7 +126,7 @@ export const formSchema: FormSchema[] = [
       immediate: true, // 页面加载就请求接口
       allowClear: true, // 可以清空
       labelField: 'label', // 下拉显示文字
-      valueField: 'value',        // 实际提交值
+      valueField: 'value', // 实际提交值
     },
   },
   {
@@ -143,7 +140,7 @@ export const formSchema: FormSchema[] = [
       immediate: true, // 页面加载就请求接口
       allowClear: true, // 可以清空
       labelField: 'label', // 下拉显示文字
-      valueField: 'value',        // 实际提交值
+      valueField: 'value', // 实际提交值
     },
   },
   {
@@ -157,7 +154,7 @@ export const formSchema: FormSchema[] = [
       immediate: true, // 页面加载就请求接口
       allowClear: true, // 可以清空
       labelField: 'levelName', // 下拉显示文字
-      valueField: 'levelCode',        // 实际提交值
+      valueField: 'levelCode', // 实际提交值
       placeholder: '请选择默认等级',
     },
   },
@@ -178,7 +175,7 @@ export const formSchema: FormSchema[] = [
     required: true,
     show: false,
     componentProps: {
-      disabled: true
+      disabled: true,
     },
   },
   {
@@ -188,7 +185,7 @@ export const formSchema: FormSchema[] = [
     required: true,
     show: false,
     componentProps: {
-      disabled: true
+      disabled: true,
     },
   },
   {
@@ -197,7 +194,7 @@ export const formSchema: FormSchema[] = [
     component: 'Input',
     required: true,
     componentProps: {
-      disabled: true
+      disabled: true,
     },
   },
   {
@@ -217,6 +214,8 @@ export const formSchema: FormSchema[] = [
       disabled: false,
       //最大上传数量
       fileMax: 10,
+      // 告警自动抓拍上传失败时，仍可在当前表单控件中预览 data URL。
+      allowDataUrl: true,
     },
   },
   {

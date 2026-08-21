@@ -18,7 +18,7 @@
             :tree-data="treeData"
             tree-node-filter-prop="label"
             :fieldNames="{ children: 'children', label: 'groupName', value: 'id', key: 'id' }"
-          ></a-tree-select>
+          />
         </div>
       </a-col>
     </a-row>
@@ -30,9 +30,9 @@
       <template #action="{ record }">
         <TableAction :actions="getActions(record)" />
       </template>
-      <template #sort="{ text, record, index }">
-        <Icon @click="moveUp(index)" icon="ant-design:arrow-up-outlined"></Icon>
-        <Icon @click="moveDown(index)" icon="ant-design:arrow-down-outlined"></Icon>
+      <template #sort="{ index }">
+        <Icon @click="moveUp(index)" icon="ant-design:arrow-up-outlined" />
+        <Icon @click="moveDown(index)" icon="ant-design:arrow-down-outlined" />
       </template>
     </BasicTable>
   </BasicModal>
@@ -66,6 +66,7 @@
   });
   const getEditForm = reactive({});
   const checkedKeys = ref<Array<string | number>>([]);
+  const editingDeviceIds = ref<Set<string>>(new Set());
   const fenzuValue = ref<Array<string | number>>([]);
   //表单配置
   const [registerForm, { resetFields, setFieldsValue, validate }] = useForm({
@@ -142,7 +143,7 @@
     //   };
     // },
     actionColumn: {
-      width: 70,
+      width: 120,
       title: '操作',
       dataIndex: 'action',
       slots: { customRender: 'action' },
@@ -188,7 +189,7 @@
   /**
    * 选择事件
    */
-  function onSelectChange(selectedRowKeys: (string | number)[], selectedRows) {
+  function onSelectChange(selectedRowKeys: (string | number)[], _selectedRows) {
     checkedKeys.value = selectedRowKeys;
   }
 
@@ -205,6 +206,10 @@
       //   onClick: handleDetail.bind(null, record),
       // },
       {
+        label: '编辑',
+        onClick: handleRowEdit.bind(null, record),
+      },
+      {
         label: '删除',
         popConfirm: {
           title: '是否确认删除',
@@ -216,8 +221,30 @@
   }
 
   function handleEdit() {
+    const selectedIdSet = new Set(checkedKeys.value.map((key) => String(key)));
+    const selectedRows = getDataSource().filter((item) => selectedIdSet.has(String(item.id)));
+    if (!selectedRows.length) {
+      message.warning('请勾选需要修改播放时长的摄像头');
+      return;
+    }
+    editingDeviceIds.value = new Set(selectedRows.map((item) => String(item.id)));
     openModalEdit(true, {
-      isUpdate: false,
+      editMode: 'batch',
+      record: {
+        playDuration: selectedRows[0].playDuration,
+        interactionCount: getEditForm.interactionCount,
+      },
+    });
+  }
+
+  function handleRowEdit(record) {
+    editingDeviceIds.value = new Set([String(record.id)]);
+    openModalEdit(true, {
+      editMode: 'single',
+      record: {
+        playDuration: record.playDuration,
+        interactionCount: getEditForm.interactionCount,
+      },
     });
   }
 
@@ -247,16 +274,21 @@
     //   });
     // })
 
-    Object.assign(getEditForm, {
-      playDuration: values.playDuration,
-      interactionCount: values.interactionCount,
-    });
-    let arr = getDataSource();
+    const playDuration = Number(values.playDuration);
+    if (!Number.isInteger(playDuration) || playDuration < 1 || playDuration > 3600) {
+      message.warning('播放时长请输入 1 至 3600 秒之间的整数');
+      return;
+    }
+    Object.assign(getEditForm, { interactionCount: values.interactionCount });
+    const arr = getDataSource();
     arr.forEach((item) => {
-      item.playDuration = values.playDuration;
-      item.interactionCount = values.interactionCount;
+      if (editingDeviceIds.value.has(String(item.id))) {
+        item.playDuration = playDuration;
+        item.interactionCount = values.interactionCount;
+      }
     });
     setTableData(arr);
+    editingDeviceIds.value = new Set();
   };
 
   const moveUp = (index) => {
@@ -311,6 +343,7 @@
           deviceId: item.id,
           sortOrder: i + 1,
           videoGroupId: item.videoGroupId,
+          playDuration: item.playDuration,
         };
       });
       setModalProps({ confirmLoading: true });

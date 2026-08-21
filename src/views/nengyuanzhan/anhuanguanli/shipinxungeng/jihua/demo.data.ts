@@ -149,7 +149,7 @@ export const formSchema: FormSchema[] = [
     field: 'status',
     label: '状态',
     component: 'RadioGroup',
-    defaultValue: 'STOP',
+    defaultValue: 'START',
     required: true,
     componentProps: {
       options: [
@@ -219,6 +219,10 @@ export const formSchemaEdit: FormSchema[] = [
     suffix: '秒',
     componentProps: {
       style: { width: '100%' },
+      min: 1,
+      max: 3600,
+      step: 1,
+      precision: 0,
     },
   },
 ];

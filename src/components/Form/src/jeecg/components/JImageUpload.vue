@@ -79,6 +79,12 @@
         required: false,
         default: 1,
       },
+      // 允许表单预览尚未持久化的 data URL（例如视频抓拍）。
+      allowDataUrl: {
+        type: Boolean,
+        required: false,
+        default: false,
+      },
     },
     emits: ['options-change', 'change', 'update:value'],
     setup(props, { emit, refs }) {
@@ -125,8 +131,8 @@
       watch(
         () => props.value,
         (val, prevCount) => {
-         //update-begin---author:liusq ---date:20230601  for：【issues/556】JImageUpload组件value赋初始值没显示图片------------
-            if (val && val instanceof Array) {
+          //update-begin---author:liusq ---date:20230601  for：【issues/556】JImageUpload组件value赋初始值没显示图片------------
+          if (val && val instanceof Array) {
             val = val.join(',');
           }
           if (initTag.value == true) {
@@ -146,9 +152,9 @@
           return;
         }
         let files = [];
-        let arr = paths.split(',');
+        let arr = props.allowDataUrl && paths.startsWith('data:image/') ? [paths] : paths.split(',');
         arr.forEach((value) => {
-          let url = getFileAccessHttpUrl(value);
+          let url = props.allowDataUrl && value.startsWith('data:image/') ? value : getFileAccessHttpUrl(value);
           files.push({
             uid: getRandom(10),
             name: getFileName(value),

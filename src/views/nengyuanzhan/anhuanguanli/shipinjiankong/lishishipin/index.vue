@@ -1,8 +1,8 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="app-container">
-    <a-row :gutter="10">
-      <a-col :span="6" class="history-sidebar-column">
+    <div ref="layoutRef" class="history-layout">
+      <section class="history-sidebar-column" :style="sidebarWidth ? { width: `${sidebarWidth}px`, flex: '0 0 auto' } : undefined">
         <a-card class="history-sidebar-card">
           <div class="treeBox">
             <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
@@ -18,8 +18,9 @@
             </div>
           </a-card>
         </a-card>
-      </a-col>
-      <a-col :span="18" class="history-player-column">
+      </section>
+      <div class="history-resize-handle" @mousedown="startResize"></div>
+      <section class="history-player-column">
         <a-card class="history-player-card">
           <div class="history-player-panel">
             <div class="player_container player_container_1">
@@ -43,8 +44,8 @@
             </div>
           </div>
         </a-card>
-      </a-col>
-    </a-row>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -70,6 +71,9 @@
   }
 
   const deviceCode = ref('');
+  const layoutRef = ref<HTMLElement | null>(null);
+  // 未拖拽时由左右两个 flex 区域均分宽度；开始拖拽后才记录左侧固定宽度。
+  const sidebarWidth = ref(0);
   const videoUrl = ref('');
   const isPlaying = ref(false);
   const playbackId = ref('');
@@ -102,12 +106,12 @@
     immediate: false,
     columns,
     formConfig: {
-      labelWidth: 90,
+      layout: 'horizontal',
       schemas: searchFormSchema,
-      autoAdvancedCol: 1,
+      autoAdvancedCol: 3,
       actionColOptions: {
-        span: 24,
-        style: { textAlign: 'left', whiteSpace: 'nowrap' },
+        span: 8,
+        style: { paddingLeft: '8px', textAlign: 'left', whiteSpace: 'nowrap' },
       },
       showAdvancedButton: false,
     },
@@ -139,6 +143,28 @@
       fixed: 'right',
     },
   });
+
+  function startResize(event: MouseEvent) {
+    event.preventDefault();
+    document.addEventListener('mousemove', resizeSidebar);
+    document.addEventListener('mouseup', stopResize);
+    document.body.classList.add('history-video-resizing');
+  }
+
+  function resizeSidebar(event: MouseEvent) {
+    const layout = layoutRef.value;
+    if (!layout) return;
+    const { left, width } = layout.getBoundingClientRect();
+    const minWidth = 280;
+    const maxWidth = Math.max(minWidth, Math.floor(width * 0.55));
+    sidebarWidth.value = Math.min(Math.max(event.clientX - left, minWidth), maxWidth);
+  }
+
+  function stopResize() {
+    document.removeEventListener('mousemove', resizeSidebar);
+    document.removeEventListener('mouseup', stopResize);
+    document.body.classList.remove('history-video-resizing');
+  }
 
   function getActions(record: HistoryRecord) {
     return [
@@ -289,6 +315,7 @@
   });
 
   onBeforeUnmount(() => {
+    stopResize();
     void releasePlaybackProxy();
     void destroyPlayer();
   });
@@ -305,8 +332,10 @@
       padding: 10px;
     }
 
-    :deep(> .ant-row) {
+    .history-layout {
+      display: flex;
       height: 100%;
+      min-width: 0;
     }
 
     .treeBox {
@@ -340,12 +369,15 @@
 
   .history-player-column {
     display: flex;
+    flex: 1 1 0;
+    width: 0;
     height: 100%;
     min-height: 0;
     overflow: hidden;
   }
 
   .history-sidebar-column {
+    flex: 1 1 0;
     height: 100%;
     min-height: 0;
   }
@@ -362,6 +394,64 @@
       min-height: 0;
       overflow: hidden;
     }
+  }
+
+  .history-resize-handle {
+    position: relative;
+    flex: 0 0 12px;
+    cursor: col-resize;
+    user-select: none;
+
+    &::after {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 5px;
+      width: 2px;
+      content: '';
+      background-color: #e5e7eb;
+      transition: background-color 0.2s ease;
+    }
+
+    &:hover::after {
+      background-color: @primary-color;
+    }
+
+    &::before {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 42px;
+      color: @primary-color;
+      font-size: 18px;
+      line-height: 1;
+      content: '⋮';
+      pointer-events: none;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      transition:
+        opacity 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    &:hover::before {
+      border-color: @primary-color;
+      opacity: 1;
+    }
+  }
+
+  :global(body.history-video-resizing) {
+    cursor: col-resize;
+    user-select: none;
   }
 
   .history-search-card {
@@ -402,9 +492,18 @@
       margin-bottom: 8px;
     }
 
+    :deep(.ant-form .ant-row) {
+      flex-wrap: wrap;
+    }
+
+    :deep(.ant-form .ant-col) {
+      flex: 1 1 160px;
+      max-width: 100%;
+    }
+
     :deep(.ant-table-wrapper) {
       flex: 1;
-      height: calc(100% - 150px);
+      height: auto;
       min-height: 0;
       padding: 6px;
       overflow: hidden;

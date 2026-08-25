@@ -21,6 +21,18 @@ const inlineDateItemProps = {
 
 export const columns: BasicColumn[] = [
   {
+    title: '设备ID',
+    dataIndex: 'deviceId',
+    width: 150,
+    resizable: true,
+  },
+  {
+    title: '设备名称',
+    dataIndex: 'deviceName',
+    width: 150,
+    resizable: true,
+  },
+  {
     title: '开始时间',
     dataIndex: 'beginTime',
     width: 180,
@@ -30,12 +42,6 @@ export const columns: BasicColumn[] = [
     title: '结束时间',
     dataIndex: 'endTime',
     width: 180,
-    resizable: true,
-  },
-  {
-    title: '文件大小(MB)',
-    dataIndex: 'sizeMb',
-    width: 120,
     resizable: true,
   },
 ];

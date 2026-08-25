@@ -12,28 +12,71 @@ enum Api {
 interface HistoryStreamItem {
   id?: string | number;
   backUrl?: string;
+  deviceId?: string;
+  deviceCode?: string;
+  deviceName?: string;
+  cameraIndexCode?: string;
+  cameraName?: string;
   beginTime?: string;
   endTime?: string;
-  size?: number;
 }
 
 interface HistoryStreamResult {
   url?: string;
+  /** 设备信息位于 getUrl 接口 result 顶层，list 仅返回录像片段。 */
+  deviceCode?: string;
+  deviceName?: string;
   beginTime?: string;
   endTime?: string;
   list?: HistoryStreamItem[];
 }
 
-function formatFileSizeMb(value?: number) {
-  const size = Number(value);
-  if (!Number.isFinite(size) || size < 0) {
-    return '';
-  }
-
-  return (size / 1024 / 1024).toFixed(2);
+interface HistoryListRecord {
+  id: string | number;
+  deviceId: string;
+  deviceName: string;
+  beginTime: string;
+  endTime: string;
 }
 
-export async function getDemoList(params) {
+interface HistoryListCacheEntry {
+  expiresAt: number;
+  records: HistoryListRecord[];
+}
+
+// 历史片段的检索结果在短时间内不会变化；只缓存列表数据，不缓存 playbackId 或播放地址。
+const HISTORY_LIST_CACHE_TTL = 3 * 60 * 1000;
+const HISTORY_LIST_CACHE_MAX_SIZE = 30;
+const historyListCache = new Map<string, HistoryListCacheEntry>();
+const pendingHistoryListRequests = new Map<string, Promise<HistoryListRecord[]>>();
+
+function getHistoryListCacheKey(params: Record<string, unknown>) {
+  return [params.deviceCode, params.startTime, params.endTime].map((value) => String(value || '')).join('|');
+}
+
+function cloneHistoryList(records: HistoryListRecord[]) {
+  return records.map((record) => ({ ...record }));
+}
+
+function cleanHistoryListCache() {
+  const now = Date.now();
+  for (const [key, entry] of historyListCache) {
+    if (entry.expiresAt <= now) historyListCache.delete(key);
+  }
+
+  while (historyListCache.size > HISTORY_LIST_CACHE_MAX_SIZE) {
+    const oldestKey = historyListCache.keys().next().value;
+    if (!oldestKey) break;
+    historyListCache.delete(oldestKey);
+  }
+}
+
+/** 供后续需要“强制刷新”入口时清空所有录像列表缓存。 */
+export function clearHistoryListCache() {
+  historyListCache.clear();
+}
+
+async function requestHistoryList(params: Record<string, unknown>) {
   const result = (await defHttp.post({ url: Api.list, params })) as HistoryStreamResult;
   const streamList = Array.isArray(result?.list) ? result.list : [];
   const records = streamList.length
@@ -51,10 +94,39 @@ export async function getDemoList(params) {
   return records.map((item, index) => ({
     id: item.id || `${item.beginTime || ''}-${item.endTime || ''}-${index}`,
     // 回放时间必须保持海康接口返回的原始格式，避免二次格式化改变实际录像时间段。
+    // 同一个检索结果下的所有录像片段均属于 result 顶层返回的设备。
+    deviceId: result.deviceCode || '',
+    deviceName: result.deviceName || '',
     beginTime: item.beginTime || '',
     endTime: item.endTime || '',
-    sizeMb: formatFileSizeMb(item.size),
   }));
+}
+
+export async function getDemoList(params: Record<string, unknown> = {}) {
+  const cacheKey = getHistoryListCacheKey(params);
+  const cached = historyListCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cloneHistoryList(cached.records);
+  }
+
+  const pendingRequest = pendingHistoryListRequests.get(cacheKey);
+  if (pendingRequest) {
+    return cloneHistoryList(await pendingRequest);
+  }
+
+  const request = requestHistoryList(params);
+  pendingHistoryListRequests.set(cacheKey, request);
+  try {
+    const records = await request;
+    cleanHistoryListCache();
+    historyListCache.set(cacheKey, {
+      expiresAt: Date.now() + HISTORY_LIST_CACHE_TTL,
+      records: cloneHistoryList(records),
+    });
+    return records;
+  } finally {
+    pendingHistoryListRequests.delete(cacheKey);
+  }
 }
 
 export interface PlaybackOpenRequest {

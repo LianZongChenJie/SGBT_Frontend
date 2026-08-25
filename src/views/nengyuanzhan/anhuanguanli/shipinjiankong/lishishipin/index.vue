@@ -1,51 +1,74 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-  <div class="app-container">
+  <div class="history-page">
     <div ref="layoutRef" class="history-layout">
-      <section class="history-sidebar-column" :style="sidebarWidth ? { width: `${sidebarWidth}px`, flex: '0 0 auto' } : undefined">
-        <a-card class="history-sidebar-card">
-          <div class="treeBox">
-            <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
-          </div>
+      <aside class="history-sidebar-column" :style="sidebarWidth ? { width: `${sidebarWidth}px`, flex: '0 0 auto' } : undefined">
+        <a-card class="history-sidebar-card" :bordered="false">
+          <section class="device-section">
+            <div class="treeBox"><DepartLeftTree ref="leftTree" @select="onTreeSelect" /></div>
+          </section>
 
-          <a-card class="mt2 history-search-card" size="small" title="录像搜索">
-            <div class="history-table-container">
-              <BasicTable class="history-record-table" @register="registerTable">
-                <template #action="{ record }">
-                  <TableAction :actions="getActions(record)" />
-                </template>
-              </BasicTable>
+          <section class="history-filter-section">
+            <div class="section-title">时间范围</div>
+            <div class="history-date-fields">
+              <label>
+                <span>开始时间</span>
+                <a-date-picker v-model:value="queryRange.startTime" show-time value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm:ss" />
+              </label>
+              <label>
+                <span>结束时间</span>
+                <a-date-picker v-model:value="queryRange.endTime" show-time value-format="YYYY-MM-DD HH:mm:ss" format="YYYY-MM-DD HH:mm:ss" />
+              </label>
             </div>
-          </a-card>
+            <div class="quick-range-actions">
+              <a-button :type="selectedRangeHours === 24 ? 'primary' : 'default'" @click="setQuickRange(24)">近24小时</a-button>
+              <a-button :type="selectedRangeHours === 72 ? 'primary' : 'default'" @click="setQuickRange(72)">近3天</a-button>
+              <a-button :type="selectedRangeHours === 168 ? 'primary' : 'default'" @click="setQuickRange(168)">近7天</a-button>
+            </div>
+            <div class="filter-actions">
+              <a-button type="primary" block @click="queryHistory">查询</a-button>
+              <a-button block @click="resetHistoryQuery">重置</a-button>
+            </div>
+          </section>
         </a-card>
-      </section>
+      </aside>
+
       <div class="history-resize-handle" @mousedown="startResize"></div>
-      <section class="history-player-column">
-        <a-card class="history-player-card">
+
+      <main class="history-main-column">
+        <a-card class="history-player-card" :bordered="false">
           <div class="history-player-panel">
             <div class="player_container player_container_1">
               <div class="player_item">
-                <div class="slot_header">
-                  <span class="slot_index">回放</span>
-                  <span class="slot_name">{{ currentHistoryLabel }}</span>
-                </div>
                 <div class="player_box" id="player_box1"></div>
               </div>
             </div>
 
             <div class="control-row">
               <div class="history-timeline" :class="{ disabled: !isTimelineAvailable }" :title="timelineCurrentDateTime">
-                <button
-                  class="history-playback-toggle"
-                  type="button"
+                <a-button
+                  class="history-control-icon"
+                  type="text"
                   :disabled="!currentRecord"
                   :title="isPlaying ? '暂停' : '播放'"
                   :aria-label="isPlaying ? '暂停' : '播放'"
                   @click="isPlaying ? onPause() : onPlayer()"
                 >
-                  <span v-if="isPlaying" class="history-pause-icon" aria-hidden="true"><i></i><i></i></span>
-                  <span v-else class="history-play-icon" aria-hidden="true"></span>
-                </button>
+                  <PauseOutlined v-if="isPlaying" />
+                  <CaretRightFilled v-else />
+                </a-button>
+                <a-button
+                  class="history-control-icon"
+                  type="text"
+                  :disabled="!currentRecord"
+                  :title="isMuted ? '开启声音' : '静音'"
+                  :aria-label="isMuted ? '开启声音' : '静音'"
+                  @click="toggleMute"
+                >
+                  <AudioMutedOutlined v-if="isMuted" />
+                  <SoundOutlined v-else />
+                </a-button>
+                <span class="timeline-current-duration">{{ timelineCurrentDuration }} / {{ timelineTotalDuration }}</span>
                 <div
                   ref="timelineTrackRef"
                   class="history-timeline-track"
@@ -61,29 +84,53 @@
                   <div class="history-timeline-played" :style="{ width: `${timelineProgressPercent}%` }"></div>
                   <div class="history-timeline-handle" :style="{ left: `${timelineProgressPercent}%` }"></div>
                 </div>
-                <span class="history-timeline-total">{{ timelineTotalDuration }}</span>
+                <a-button
+                  class="history-control-icon history-replay-icon"
+                  type="text"
+                  :disabled="!currentRecord"
+                  title="重播"
+                  aria-label="重播"
+                  @click="onReplay"
+                  ><ReloadOutlined
+                /></a-button>
               </div>
-              <div class="control-actions">
-                <div class="radio-item" @click="onReplay">重播</div>
-              </div>
+            </div>
+
+            <div class="playback-meta">
+              <strong>{{ selectedDeviceName || currentRecord?.deviceName || '未选择设备' }}</strong>
+              <span>{{ currentRecord ? `${currentRecord.beginTime} ~ ${currentRecord.endTime}` : '--' }}</span>
             </div>
           </div>
         </a-card>
-      </section>
+
+        <a-card class="history-records-card" :bordered="false">
+          <div class="records-heading">
+            <strong>录像列表</strong>
+            <a-button type="link" @click="queryHistory">刷新</a-button>
+          </div>
+          <div class="history-record-table-host">
+            <BasicTable class="history-record-table" @register="registerTable">
+              <template #action="{ record }"><TableAction :actions="getActions(record)" /></template>
+            </BasicTable>
+          </div>
+        </a-card>
+      </main>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup name="lishishipin">
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+  import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
   import { message } from 'ant-design-vue';
+  import { AudioMutedOutlined, CaretRightFilled, PauseOutlined, ReloadOutlined, SoundOutlined } from '@ant-design/icons-vue';
   import DepartLeftTree from '@/views/nengyuanzhan/anhuanguanli/shebeiguankong/shipinshebeiguanli/components/DepartLeftTree.vue';
   import { useEasyPlayer } from '@/views/nengyuanzhan/anhuanguanli/hooks/useEasyPlayer';
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicTable, TableAction, useTable } from '/@/components/Table';
-  import { columns, searchFormSchema } from './demo.data';
+  import { columns } from './demo.data';
   import {
     closeHttpMp4Playback,
+    clearHistoryListCache,
     getDemoList,
     openHttpMp4Playback,
     pauseHttpMp4Playback,
@@ -95,20 +142,30 @@
   interface VideoTreeNode {
     key?: string;
     camera?: string;
+    title?: string;
   }
 
   interface HistoryRecord {
     id?: string | number;
+    deviceId?: string;
+    deviceName?: string;
     beginTime?: string;
     endTime?: string;
   }
 
   const deviceCode = ref('');
+  const selectedDeviceName = ref('');
+  const selectedRangeHours = ref(24);
+  const queryRange = reactive({
+    startTime: formatQueryTime(Date.now() - 24 * 60 * 60 * 1000),
+    endTime: formatQueryTime(Date.now()),
+  });
   const layoutRef = ref<HTMLElement | null>(null);
   // 未拖拽时由左右两个 flex 区域均分宽度；开始拖拽后才记录左侧固定宽度。
   const sidebarWidth = ref(0);
   const videoUrl = ref('');
   const isPlaying = ref(false);
+  const isMuted = ref(false);
   const playbackId = ref('');
   const playbackDurationMs = ref(0);
   const playbackPositionMs = ref(0);
@@ -123,11 +180,12 @@
   let playbackStartedAt = 0;
   let isTimelineSeeking = false;
   let pendingTimelineSeekPositionMs: number | undefined;
+  // 代码主动同步 EasyPlayer 状态时，不再重复触发后端暂停/继续请求。
+  let isSyncingEasyPlayerPauseState = false;
   const {
     create: createPlayer,
     destroy: destroyPlayer,
     getPlayer,
-    pause: pausePlayer,
     play: playPlayer,
   } = useEasyPlayer({
     playbackSeek: (positionMs) => {
@@ -137,17 +195,10 @@
       // HTTP-fMP4 以 seek 接口返回的 positionMs 为准，此事件仅保留作播放器诊断。
       console.debug('[历史视频] EasyPlayer timestamps', timestamp);
     },
-  });
-
-  const currentHistoryLabel = computed(() => {
-    const record = currentRecord.value;
-    if (!record) {
-      return '当前回放：未选择录像';
-    }
-
-    const beginTime = record.beginTime || '--';
-    const endTime = record.endTime || '--';
-    return `当前回放：${beginTime} 至 ${endTime}`;
+    playbackPause: (paused) => {
+      if (isSyncingEasyPlayerPauseState) return;
+      void changePlaybackPause(paused, false);
+    },
   });
 
   const isTimelineAvailable = computed(() => Boolean(playbackId.value && playbackDurationMs.value > 0));
@@ -156,6 +207,7 @@
     return Math.min(100, Math.max(0, (timelinePositionMs.value / playbackDurationMs.value) * 100));
   });
   const timelineTotalDuration = computed(() => formatTimelineDuration(playbackDurationMs.value));
+  const timelineCurrentDuration = computed(() => formatTimelineDuration(timelinePositionMs.value));
   const timelineCurrentDateTime = computed(() => {
     const record = currentRecord.value;
     if (!record?.beginTime) return '--';
@@ -163,20 +215,10 @@
     return Number.isFinite(beginTimestamp) ? formatHistoryDateTime(beginTimestamp + timelinePositionMs.value) : '--';
   });
 
-  const [registerTable] = useTable({
+  const [registerTable, { reload }] = useTable({
     api: getDemoList,
     immediate: false,
     columns,
-    formConfig: {
-      layout: 'horizontal',
-      schemas: searchFormSchema,
-      autoAdvancedCol: 3,
-      actionColOptions: {
-        span: 8,
-        style: { paddingLeft: '8px', textAlign: 'left', whiteSpace: 'nowrap' },
-      },
-      showAdvancedButton: false,
-    },
     beforeFetch: (params) => {
       return {
         ...params,
@@ -184,7 +226,7 @@
       };
     },
     striped: true,
-    useSearchForm: true,
+    useSearchForm: false,
     showTableSetting: false,
     clickToRowSelect: false,
     bordered: true,
@@ -195,7 +237,8 @@
     tableSetting: { fullScreen: true },
     pagination: false,
     canResize: false,
-    scroll: { y: 'calc(100vh - 620px)' },
+    // 保持固定表头；实际可滚动高度由表格所在卡片的剩余空间控制。
+    scroll: { y: 1 },
     rowKey: 'id',
     actionColumn: {
       width: 80,
@@ -255,19 +298,52 @@
   async function onTreeSelect(data: VideoTreeNode) {
     if (data.camera === 'true') {
       deviceCode.value = data.key || '';
+      selectedDeviceName.value = data.title || '';
       await resetPlaybackState({ clearRecord: true });
     }
+  }
+
+  function formatQueryTime(timestamp: number) {
+    const date = new Date(timestamp);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+
+  function setQuickRange(hours: number) {
+    selectedRangeHours.value = hours;
+    queryRange.endTime = formatQueryTime(Date.now());
+    queryRange.startTime = formatQueryTime(Date.now() - hours * 60 * 60 * 1000);
+  }
+
+  async function queryHistory() {
+    if (!deviceCode.value) {
+      message.warning('请先在设备列表中选择摄像头');
+      return;
+    }
+    if (!queryRange.startTime || !queryRange.endTime) {
+      message.warning('请选择完整的时间范围');
+      return;
+    }
+    // “查询/刷新”是用户主动获取最新录像列表的操作，不能命中页面内短时缓存。
+    clearHistoryListCache();
+    await reload({ page: 1, searchInfo: { ...queryRange } });
+  }
+
+  async function resetHistoryQuery() {
+    setQuickRange(24);
+    await queryHistory();
   }
 
   async function createHistoryPlayer() {
     const player = await createPlayer('player_box1', {
       isLive: false,
-      MSE: false,
+      // HTTP-fMP4 使用浏览器 MSE/原生 video 解码，保障回放兼容性。
+      MSE: true,
       WCS: false,
       hasAudio: true,
       // 保留 EasyPlayer 悬停时的播放、音量、全屏等底部操作栏；录像定位仍由下方自定义时间轴处理。
       hasControl: true,
-      hiddenRightMenu: true,
+      hiddenRightMenu: false,
       playbackConfig: {
         // HTTP-fMP4 的进度条位置由后端 seek 接口确定，单位由 EasyPlayer 换算为秒。
         controlType: 'simple',
@@ -326,25 +402,49 @@
       await openPlaybackProxy(currentRecord.value);
       return;
     }
-    try {
-      const playback = await resumeHttpMp4Playback({ playbackId: playbackId.value });
-      await applyPlaybackResponse(playback);
-    } catch (error) {
-      message.error(error instanceof Error ? error.message : '继续历史回放失败');
-    }
+    await changePlaybackPause(false);
   }
 
   async function onPause() {
     if (!playbackId.value) return;
+    await changePlaybackPause(true);
+  }
+
+  function toggleMute() {
+    isMuted.value = !isMuted.value;
+    getPlayer()?.setMute(isMuted.value);
+  }
+
+  async function changePlaybackPause(paused: boolean, syncEasyPlayerState = true) {
+    if (!playbackId.value) return;
+
     try {
-      const playback = await pauseHttpMp4Playback({ playbackId: playbackId.value });
-      stopProgressSync();
-      updatePlaybackState(playback);
-      emitPlaybackProgress(playbackPositionMs.value);
-      pausePlayer();
-      isPlaying.value = false;
+      if (paused) {
+        // 不调用 player.pause()/stop()：EasyPlayer 的 pause 会关闭当前解码和拉流，
+        // 恢复时必须重新创建播放器，正是造成播放/暂停卡顿的原因。
+        stopProgressSync(true);
+        isPlaying.value = false;
+        const playback = await pauseHttpMp4Playback({ playbackId: playbackId.value });
+        updatePlaybackState(playback);
+        emitPlaybackProgress(playbackPositionMs.value);
+        if (syncEasyPlayerState) setEasyPlayerPaused(true);
+        return;
+      }
+
+      const playback = await resumeHttpMp4Playback({ playbackId: playbackId.value });
+      await applyPlaybackResponse(playback, false);
+      if (syncEasyPlayerState) setEasyPlayerPaused(false);
     } catch (error) {
-      message.error(error instanceof Error ? error.message : '暂停历史回放失败');
+      if (paused) {
+        isPlaying.value = true;
+        startProgressSync();
+        if (!syncEasyPlayerState) setEasyPlayerPaused(false);
+      } else {
+        isPlaying.value = false;
+        stopProgressSync();
+        if (!syncEasyPlayerState) setEasyPlayerPaused(true);
+      }
+      message.error(error instanceof Error ? error.message : paused ? '暂停历史回放失败' : '继续历史回放失败');
     }
   }
 
@@ -508,15 +608,31 @@
     schedulePlaybackSeek(timelinePositionMs.value);
   }
 
-  async function applyPlaybackResponse(playback: PlaybackHttpMp4Response) {
-    const streamUrl = normalizeVideoStreamUrl(playback.httpMp4Url);
+  function setEasyPlayerPaused(paused: boolean) {
+    const player = getPlayer();
+    if (!player || player.playbackPause === paused) return;
+    isSyncingEasyPlayerPauseState = true;
+    player.playbackPause = paused;
+    isSyncingEasyPlayerPauseState = false;
+  }
+
+  async function applyPlaybackResponse(playback: PlaybackHttpMp4Response, forceRecreatePlayer = true) {
+    const responseUrl = normalizeVideoStreamUrl(playback.httpMp4Url);
+    const streamUrl = responseUrl || videoUrl.value;
     if (!playback.playbackId || !streamUrl) {
       throw new Error('未获取到 HTTP-fMP4 回放地址');
     }
+    const isStreamChanged = Boolean(responseUrl && responseUrl !== videoUrl.value);
     updatePlaybackState(playback);
     videoUrl.value = streamUrl;
-    await recreateHistoryPlayer();
-    await playHistoryVideo(streamUrl);
+    if (forceRecreatePlayer || isStreamChanged || !getPlayer()) {
+      await recreateHistoryPlayer();
+      await playHistoryVideo(streamUrl);
+      return;
+    }
+
+    isPlaying.value = true;
+    startProgressSync();
   }
 
   function schedulePlaybackSeek(positionMs: number) {
@@ -780,7 +896,8 @@
     }
 
     :deep(.ant-table-body) {
-      max-height: calc(100vh - 620px) !important;
+      max-height: calc(100vh - 600px) !important;
+      overflow-y: auto !important;
     }
   }
 
@@ -845,6 +962,20 @@
     :deep(.easyplayer-control-progress-box) {
       display: none !important;
     }
+
+    // 播放与音量由画面下方的自定义控制条统一管理，其余原生功能保留。
+    :deep(.easyplayer-play),
+    :deep(.easyplayer-pause),
+    :deep(.easyplayer-play-big),
+    :deep(.easyplayer-volume),
+    :deep(.easyplayer-speed),
+    :deep(.easyplayer-speed-menu),
+    :deep(.easyplayer-speed-menu-wrap),
+    :deep(.easyplayer-controls-item-wrap:has(.easyplayer-speed)),
+    :deep(.easyplayer-controls-code-wrap),
+    :deep(.easyplayer-controls-item-html) {
+      display: none !important;
+    }
   }
 
   .control-row {
@@ -895,60 +1026,39 @@
     }
   }
 
-  .history-playback-toggle {
-    display: inline-flex;
+  .history-control-icon {
     flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
     padding: 0;
-    color: #fff;
-    cursor: pointer;
-    background: @primary-color;
-    border: 0;
-    border-radius: 50%;
-    box-shadow: 0 2px 6px fade(@primary-color, 32%);
-    transition:
-      transform 0.2s ease,
-      background-color 0.2s ease,
-      box-shadow 0.2s ease;
+    color: #111827;
+    font-size: 20px;
+    border-radius: 5px;
 
     &:hover:not(:disabled) {
-      color: #fff;
-      background: darken(@primary-color, 7%);
-      box-shadow: 0 3px 8px fade(@primary-color, 42%);
-      transform: scale(1.06);
+      color: @primary-color;
+      background: #f1f5ff;
     }
 
     &:disabled {
-      color: #fff;
-      cursor: not-allowed;
-      background: #bfbfbf;
-      box-shadow: none;
+      color: #c5cad3;
     }
   }
 
-  .history-play-icon {
-    width: 0;
-    height: 0;
+  .timeline-current-duration {
+    flex: 0 0 auto;
+    color: #161b26;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .timeline-current-duration {
+    min-width: 120px;
+  }
+
+  .history-replay-icon {
     margin-left: 2px;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-left: 9px solid #fff;
-  }
-
-  .history-pause-icon {
-    display: inline-flex;
-    gap: 4px;
-
-    i {
-      display: block;
-      width: 3px;
-      height: 12px;
-      background: #fff;
-      border-radius: 1px;
-    }
   }
 
   .history-timeline-buffer,
@@ -1017,6 +1127,397 @@
 
   .radio-item:hover {
     color: @primary-color;
+  }
+
+  // 设计稿布局：左侧检索面板 + 右侧回放与录像列表，播放器内部实现保持不变。
+  .history-page {
+    box-sizing: border-box;
+    height: calc(100vh - 110px);
+    padding: 14px 14px 34px;
+    overflow: hidden;
+    background: #f5f7fb;
+  }
+
+  .history-layout {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    gap: 0;
+  }
+
+  .history-sidebar-column {
+    flex: 0 0 29%;
+    min-width: 310px;
+    max-width: 460px;
+  }
+
+  .history-sidebar-card,
+  .history-player-card,
+  .history-records-card {
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgba(41, 63, 103, 0.06);
+  }
+
+  .history-sidebar-card {
+    height: 100%;
+    background: #fff;
+
+    > :deep(.ant-card-body) {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 20px;
+      overflow: hidden;
+    }
+  }
+
+  .device-section {
+    display: flex;
+    flex: 1 1 68%;
+    flex-direction: column;
+    min-height: 240px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .section-title,
+  .records-heading strong,
+  .playback-heading strong {
+    color: #182033;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .treeBox {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+
+    :deep(.ant-card) {
+      height: 100% !important;
+      box-shadow: none;
+    }
+
+    :deep(.ant-card-body) {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :deep(.ant-spin-nested-loading),
+    :deep(.ant-spin-container) {
+      min-height: 0;
+      overflow: auto;
+    }
+
+    :deep(.ant-tree) {
+      padding: 4px 0;
+      color: #343b4b;
+      background: transparent;
+    }
+
+    :deep(.ant-tree-treenode) {
+      width: 100%;
+      min-height: 35px;
+      padding: 2px 0;
+    }
+
+    :deep(.ant-tree-node-content-wrapper) {
+      width: calc(100% - 22px);
+      min-height: 31px;
+      line-height: 31px;
+      border-radius: 5px;
+    }
+
+    :deep(.ant-tree-node-selected) {
+      color: @primary-color;
+      font-weight: 600;
+      background: #edf3ff;
+    }
+  }
+
+  .history-filter-section {
+    flex: 0 0 auto;
+    min-height: 0;
+    padding-top: 12px;
+  }
+
+  .history-date-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+
+    label {
+      min-width: 0;
+      color: #667085;
+      font-size: 12px;
+
+      span {
+        display: block;
+        margin-bottom: 6px;
+      }
+    }
+
+    :deep(.ant-picker) {
+      width: 100%;
+      height: 40px;
+      padding: 0 8px;
+      border-radius: 5px;
+    }
+
+    :deep(.ant-picker-input > input) {
+      font-size: 12px;
+    }
+
+    :deep(.ant-picker-suffix) {
+      line-height: 38px;
+    }
+  }
+
+  .quick-range-actions,
+  .filter-actions {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .quick-range-actions {
+    grid-template-columns: repeat(3, 1fr);
+
+    :deep(.ant-btn) {
+      height: 34px;
+      padding: 0 4px;
+      border-radius: 5px;
+      font-size: 12px;
+    }
+  }
+
+  .filter-actions {
+    grid-template-columns: 1fr 1fr;
+    padding-top: 14px;
+    border-top: 1px solid #edf0f5;
+
+    :deep(.ant-btn) {
+      height: 38px;
+      border-radius: 5px;
+    }
+  }
+
+  .history-main-column {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    gap: 14px;
+  }
+
+  .history-player-card {
+    flex: 1 1 54%;
+    width: 100%;
+    height: auto;
+    min-height: 306px;
+    overflow: hidden;
+
+    :deep(.ant-card-body) {
+      height: 100%;
+      padding: 16px;
+    }
+  }
+
+  .history-player-panel {
+    gap: 10px;
+  }
+
+  .playback-heading,
+  .records-heading,
+  .playback-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .playback-heading span,
+  .playback-meta span {
+    overflow: hidden;
+    color: #242b3a;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .playback-meta {
+    min-height: 24px;
+    padding: 0 2px;
+  }
+
+  .playback-meta strong {
+    color: #1c2433;
+    font-size: 14px;
+  }
+
+  .player_item {
+    border-radius: 6px;
+  }
+
+  .control-row {
+    min-height: 32px;
+    padding: 0 4px;
+  }
+
+  .history-records-card {
+    flex: 1 1 46%;
+    min-height: 230px;
+    overflow: hidden;
+
+    :deep(.ant-card-body) {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      padding: 12px 16px 14px;
+    }
+  }
+
+  .records-heading {
+    flex: 0 0 auto;
+    min-height: 30px;
+    margin-bottom: 8px;
+  }
+
+  .history-record-table-host {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .history-record-table {
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+
+    > :deep(.ant-form-item),
+    :deep(.ant-form-item-control),
+    :deep(.ant-form-item-control-input),
+    :deep(.ant-form-item-control-input-content) {
+      display: flex;
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
+    > :deep(.ant-form-item) {
+      margin-bottom: 0;
+    }
+
+    :deep(.ant-form-item-control-input-content) {
+      align-self: stretch;
+      flex-direction: column;
+      height: 100% !important;
+    }
+
+    :deep(.ant-table-wrapper) {
+      padding: 0;
+    }
+
+    :deep(.ant-table-wrapper),
+    :deep(.ant-spin-nested-loading),
+    :deep(.ant-spin-container),
+    :deep(.ant-table) {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      height: auto !important;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    :deep(.ant-table) {
+      font-size: 13px;
+    }
+
+    :deep(.ant-table-thead > tr > th) {
+      color: #222b3d;
+      font-weight: 600;
+      background: #f6f8fc;
+    }
+
+    :deep(.ant-table-cell) {
+      padding: 11px 10px;
+      white-space: nowrap;
+    }
+
+    :deep(.ant-table-container) {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      height: auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    :deep(.ant-table-header) {
+      flex: 0 0 auto;
+    }
+
+    :deep(.ant-table-body) {
+      flex: 1 1 0;
+      height: auto !important;
+      min-height: 0;
+      max-height: none !important;
+      overflow-y: auto !important;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .history-page {
+      height: auto;
+      min-height: 100%;
+      overflow: auto;
+    }
+
+    .history-layout {
+      flex-direction: column;
+    }
+
+    .history-sidebar-column,
+    .history-main-column {
+      width: 100% !important;
+      max-width: none;
+    }
+
+    .history-sidebar-column {
+      min-width: 0;
+    }
+
+    .history-sidebar-card {
+      height: auto;
+    }
+
+    .device-section {
+      min-height: 220px;
+    }
+
+    .history-resize-handle {
+      display: none;
+    }
+
+    .history-player-card,
+    .history-records-card {
+      flex-basis: auto;
+    }
+
+    .history-player-card {
+      height: 460px;
+    }
   }
 
   :global(.history-date-picker-popup) {

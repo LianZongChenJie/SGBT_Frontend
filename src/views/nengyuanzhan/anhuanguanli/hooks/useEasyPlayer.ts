@@ -36,9 +36,11 @@ interface EasyPlayerInstance {
   screenshot?: (filename?: string, type?: string, quality?: number | string, mode?: string) => unknown;
   setMute: (value: boolean) => void;
   setFullscreen: (value: boolean) => void;
-  setRate?: (rate: number) => void;
+  setRate?: (rate: number) => unknown;
   /** 覆盖默认本地定位逻辑时使用。 */
   seekTime?: (position: number) => void;
+  /** EasyPlayer 回放的本地暂停状态。 */
+  playbackPause?: boolean;
   destroy: () => void;
   on: (event: string, handler: (payload: any) => void) => void;
   emit?: (event: string, payload: unknown) => void;
@@ -54,6 +56,8 @@ interface EasyPlayerEvents {
   playbackSeek?: (data: unknown) => void;
   /** EasyPlayer 内部时间戳，仅用于观测，不代表后端 HTTP-fMP4 会话位置。 */
   timestamps?: (timestamp: unknown) => void;
+  /** 播放器底部原生播放/暂停按钮触发的状态变更。 */
+  playbackPause?: (paused: boolean) => void;
 }
 
 declare const EasyPlayerPro: new (container: HTMLElement, options: EasyPlayerOptions) => EasyPlayerInstance;
@@ -108,6 +112,12 @@ function bindEvents(player: EasyPlayerInstance, events: EasyPlayerEvents = {}) {
   if (events.timestamps) {
     player.on('timestamps', (timestamp) => {
       events.timestamps?.(timestamp);
+    });
+  }
+
+  if (events.playbackPause) {
+    player.on('playbackPause', (paused) => {
+      events.playbackPause?.(Boolean(paused));
     });
   }
 }

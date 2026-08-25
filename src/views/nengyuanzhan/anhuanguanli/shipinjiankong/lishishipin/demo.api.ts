@@ -2,9 +2,11 @@ import { defHttp } from '/@/utils/http/axios';
 
 enum Api {
   list = '/operation/videoDevice/getUrl',
-  playbackOpen = '/operation/video/playback/open',
-  playbackStatus = '/operation/video/playback/status',
-  playbackClose = '/operation/video/playback/close',
+  playbackOpenHttpMp4 = '/operation/video/playback/openHttpmp4',
+  playbackPauseHttpMp4 = '/operation/video/playback/pauseHttpmp4',
+  playbackResumeHttpMp4 = '/operation/video/playback/resumeHttpmp4',
+  playbackSeekHttpMp4 = '/operation/video/playback/seekHttpmp4',
+  playbackCloseHttpMp4 = '/operation/video/playback/closeHttpmp4',
 }
 
 interface HistoryStreamItem {
@@ -63,25 +65,49 @@ export interface PlaybackOpenRequest {
   streamType?: 0 | 1;
 }
 
-export interface PlaybackOpenResponse {
+export interface PlaybackHttpMp4Response {
+  /** 本次回放会话 ID，暂停、继续、拖动和关闭均使用此值。 */
   playbackId: string;
+  /** ZLM 流 ID；继续或拖动后可能变化。 */
   stream?: string;
-  /** GENERATING：生成中；READY：可点播；FAILED：失败；CLOSED：已关闭 */
-  status?: 'GENERATING' | 'READY' | 'FAILED' | 'CLOSED' | string;
-  /** 仅在 READY 时返回的固定 MP4 点播地址。 */
-  mp4Url?: string;
-  /** 仅在 READY 时返回的实际录像时长，单位：秒。 */
-  durationSeconds?: number;
+  /** HTTP-fMP4 播放地址。 */
+  httpMp4Url?: string;
+  /** 回放状态：PLAYING / PAUSED / CLOSED。 */
+  state?: 'PLAYING' | 'PAUSED' | 'CLOSED' | string;
+  /** 本次回放开始、结束时间。 */
+  beginTime?: string;
+  endTime?: string;
+  /** 可拖动的最大位置，单位毫秒，相对于 beginTime。 */
+  durationMs?: number;
+  /** 当前播放位置，单位毫秒，相对于 beginTime。 */
+  positionMs?: number;
 }
 
-export function openHistoryPlayback(data: PlaybackOpenRequest) {
-  return defHttp.post<PlaybackOpenResponse>({ url: Api.playbackOpen, params: data });
+export interface PlaybackIdRequest {
+  playbackId: string;
 }
 
-export function getHistoryPlaybackStatus(playbackId: string) {
-  return defHttp.get<PlaybackOpenResponse>({ url: `${Api.playbackStatus}/${playbackId}` });
+export interface PlaybackSeekRequest extends PlaybackIdRequest {
+  /** 相对于本次请求 beginTime 的毫秒偏移。 */
+  positionMs: number;
 }
 
-export function closeHistoryPlayback(playbackId: string) {
-  return defHttp.post({ url: Api.playbackClose, params: { playbackId } });
+export function openHttpMp4Playback(data: PlaybackOpenRequest) {
+  return defHttp.post<PlaybackHttpMp4Response>({ url: Api.playbackOpenHttpMp4, params: data });
+}
+
+export function pauseHttpMp4Playback(data: PlaybackIdRequest) {
+  return defHttp.post<PlaybackHttpMp4Response>({ url: Api.playbackPauseHttpMp4, params: data });
+}
+
+export function resumeHttpMp4Playback(data: PlaybackIdRequest) {
+  return defHttp.post<PlaybackHttpMp4Response>({ url: Api.playbackResumeHttpMp4, params: data });
+}
+
+export function seekHttpMp4Playback(data: PlaybackSeekRequest) {
+  return defHttp.post<PlaybackHttpMp4Response>({ url: Api.playbackSeekHttpMp4, params: data });
+}
+
+export function closeHttpMp4Playback(data: PlaybackIdRequest) {
+  return defHttp.post({ url: Api.playbackCloseHttpMp4, params: data });
 }

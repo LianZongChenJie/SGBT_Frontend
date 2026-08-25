@@ -10,12 +10,15 @@ interface EasyPlayerOptions {
   MSE?: boolean;
   WCS?: boolean;
   hasAudio?: boolean;
+  hasControl?: boolean;
   hiddenRightMenu?: boolean;
   playbackConfig?: {
     /** simple 模式使用相对时长进度条，适合固定 MP4 点播文件。 */
     controlType?: 'normal' | 'simple';
     /** 固定录像文件的时长，单位：秒。 */
     duration?: number;
+    /** 当前回放起点，单位：秒。 */
+    startTime?: number;
   };
   watermark?: {
     text: {
@@ -34,8 +37,11 @@ interface EasyPlayerInstance {
   setMute: (value: boolean) => void;
   setFullscreen: (value: boolean) => void;
   setRate?: (rate: number) => void;
+  /** 覆盖默认本地定位逻辑时使用。 */
+  seekTime?: (position: number) => void;
   destroy: () => void;
   on: (event: string, handler: (payload: any) => void) => void;
+  emit?: (event: string, payload: unknown) => void;
 }
 
 interface EasyPlayerEvents {
@@ -46,6 +52,8 @@ interface EasyPlayerEvents {
   fullscreen?: (flag: boolean) => void;
   playbackRate?: (rate: number, player: EasyPlayerInstance) => void;
   playbackSeek?: (data: unknown) => void;
+  /** EasyPlayer 内部时间戳，仅用于观测，不代表后端 HTTP-fMP4 会话位置。 */
+  timestamps?: (timestamp: unknown) => void;
 }
 
 declare const EasyPlayerPro: new (container: HTMLElement, options: EasyPlayerOptions) => EasyPlayerInstance;
@@ -94,6 +102,12 @@ function bindEvents(player: EasyPlayerInstance, events: EasyPlayerEvents = {}) {
   if (events.playbackSeek) {
     player.on('playbackSeek', (data) => {
       events.playbackSeek?.(data);
+    });
+  }
+
+  if (events.timestamps) {
+    player.on('timestamps', (timestamp) => {
+      events.timestamps?.(timestamp);
     });
   }
 }

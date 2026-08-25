@@ -34,11 +34,37 @@
             </div>
 
             <div class="control-row">
+              <div class="history-timeline" :class="{ disabled: !isTimelineAvailable }" :title="timelineCurrentDateTime">
+                <button
+                  class="history-playback-toggle"
+                  type="button"
+                  :disabled="!currentRecord"
+                  :title="isPlaying ? '暂停' : '播放'"
+                  :aria-label="isPlaying ? '暂停' : '播放'"
+                  @click="isPlaying ? onPause() : onPlayer()"
+                >
+                  <span v-if="isPlaying" class="history-pause-icon" aria-hidden="true"><i></i><i></i></span>
+                  <span v-else class="history-play-icon" aria-hidden="true"></span>
+                </button>
+                <div
+                  ref="timelineTrackRef"
+                  class="history-timeline-track"
+                  role="slider"
+                  :aria-valuemin="0"
+                  :aria-valuemax="playbackDurationMs"
+                  :aria-valuenow="timelinePositionMs"
+                  :aria-disabled="!isTimelineAvailable"
+                  tabindex="0"
+                  @pointerdown="startTimelineSeek"
+                >
+                  <div class="history-timeline-buffer"></div>
+                  <div class="history-timeline-played" :style="{ width: `${timelineProgressPercent}%` }"></div>
+                  <div class="history-timeline-handle" :style="{ left: `${timelineProgressPercent}%` }"></div>
+                </div>
+                <span class="history-timeline-total">{{ timelineTotalDuration }}</span>
+              </div>
               <div class="control-actions">
-                <div v-if="isPlaying" class="radio-item" @click="onReplay">重播</div>
-                <div v-else class="radio-item" @click="onPlayer">播放</div>
-                <div class="radio-item" @click="onPause">暂停</div>
-                <div class="radio-item" @click="setFullscreen">全屏</div>
+                <div class="radio-item" @click="onReplay">重播</div>
               </div>
             </div>
           </div>
@@ -56,7 +82,15 @@
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicTable, TableAction, useTable } from '/@/components/Table';
   import { columns, searchFormSchema } from './demo.data';
-  import { closeHistoryPlayback, getDemoList, getHistoryPlaybackStatus, openHistoryPlayback, type PlaybackOpenResponse } from './demo.api';
+  import {
+    closeHttpMp4Playback,
+    getDemoList,
+    openHttpMp4Playback,
+    pauseHttpMp4Playback,
+    resumeHttpMp4Playback,
+    seekHttpMp4Playback,
+    type PlaybackHttpMp4Response,
+  } from './demo.api';
 
   interface VideoTreeNode {
     key?: string;
@@ -76,11 +110,34 @@
   const videoUrl = ref('');
   const isPlaying = ref(false);
   const playbackId = ref('');
-  const playbackDuration = ref<number>();
+  const playbackDurationMs = ref(0);
+  const playbackPositionMs = ref(0);
+  const timelinePositionMs = ref(0);
+  const timelineTrackRef = ref<HTMLElement | null>(null);
   const currentRecord = ref<HistoryRecord | null>(null);
-  // 每次创建或释放回放会话都会更新版本号，避免旧轮询覆盖当前选择的录像。
+  // 每次创建或释放回放会话都会更新版本号，避免旧请求覆盖当前选择的录像。
   let playbackSessionVersion = 0;
-  const { create: createPlayer, destroy: destroyPlayer, pause: pausePlayer, play: playPlayer, setFullscreen: setPlayerFullscreen } = useEasyPlayer();
+  let seekRequestVersion = 0;
+  let seekTimer: number | undefined;
+  let progressAnimationFrame: number | undefined;
+  let playbackStartedAt = 0;
+  let isTimelineSeeking = false;
+  let pendingTimelineSeekPositionMs: number | undefined;
+  const {
+    create: createPlayer,
+    destroy: destroyPlayer,
+    getPlayer,
+    pause: pausePlayer,
+    play: playPlayer,
+  } = useEasyPlayer({
+    playbackSeek: (positionMs) => {
+      schedulePlaybackSeek(Number(positionMs));
+    },
+    timestamps: (timestamp) => {
+      // HTTP-fMP4 以 seek 接口返回的 positionMs 为准，此事件仅保留作播放器诊断。
+      console.debug('[历史视频] EasyPlayer timestamps', timestamp);
+    },
+  });
 
   const currentHistoryLabel = computed(() => {
     const record = currentRecord.value;
@@ -91,6 +148,19 @@
     const beginTime = record.beginTime || '--';
     const endTime = record.endTime || '--';
     return `当前回放：${beginTime} 至 ${endTime}`;
+  });
+
+  const isTimelineAvailable = computed(() => Boolean(playbackId.value && playbackDurationMs.value > 0));
+  const timelineProgressPercent = computed(() => {
+    if (!playbackDurationMs.value) return 0;
+    return Math.min(100, Math.max(0, (timelinePositionMs.value / playbackDurationMs.value) * 100));
+  });
+  const timelineTotalDuration = computed(() => formatTimelineDuration(playbackDurationMs.value));
+  const timelineCurrentDateTime = computed(() => {
+    const record = currentRecord.value;
+    if (!record?.beginTime) return '--';
+    const beginTimestamp = parseHistoryTime(record.beginTime);
+    return Number.isFinite(beginTimestamp) ? formatHistoryDateTime(beginTimestamp + timelinePositionMs.value) : '--';
   });
 
   const [registerTable] = useTable({
@@ -174,7 +244,9 @@
     if (options.clearRecord) {
       currentRecord.value = null;
       videoUrl.value = '';
-      playbackDuration.value = undefined;
+      playbackDurationMs.value = 0;
+      playbackPositionMs.value = 0;
+      timelinePositionMs.value = 0;
     }
 
     await recreateHistoryPlayer();
@@ -188,21 +260,32 @@
   }
 
   async function createHistoryPlayer() {
-    return createPlayer('player_box1', {
+    const player = await createPlayer('player_box1', {
       isLive: false,
       MSE: false,
       WCS: false,
       hasAudio: true,
+      // 保留 EasyPlayer 悬停时的播放、音量、全屏等底部操作栏；录像定位仍由下方自定义时间轴处理。
+      hasControl: true,
       hiddenRightMenu: true,
       playbackConfig: {
-        // 固定 MP4 点播文件由 EasyPlayer 原生进度条负责定位，避免按 HLS 回放时间轴换算。
+        // HTTP-fMP4 的进度条位置由后端 seek 接口确定，单位由 EasyPlayer 换算为秒。
         controlType: 'simple',
-        duration: playbackDuration.value || 0,
+        // 后端 durationMs/positionMs 是毫秒，EasyPlayer 的 duration/startTime 需要秒。
+        duration: millisecondsToSeconds(playbackDurationMs.value),
+        startTime: millisecondsToSeconds(playbackPositionMs.value),
       },
     });
+    // HTTP-fMP4 的定位由后端 seekHttpmp4 创建新流完成；禁用 EasyPlayer 先对本地缓冲区 seek，
+    // 避免进度条在服务端返回前出现错误跳转或回跳。
+    if (player) {
+      player.seekTime = () => undefined;
+    }
+    return player;
   }
 
   async function recreateHistoryPlayer() {
+    stopProgressSync();
     await destroyPlayer();
     await nextTick();
     await createHistoryPlayer();
@@ -215,8 +298,12 @@
     }
 
     isPlaying.value = true;
+    // HTTP-fMP4 的播放器启动 Promise 可能会等待首帧；时间轴以服务端确认的
+    // positionMs 为基准立即开始推进，避免首帧期间进度条停在原处。
+    startProgressSync();
     await playPlayer(url, 'playback', (error) => {
       isPlaying.value = false;
+      stopProgressSync();
       console.error(error);
     });
   }
@@ -239,20 +326,26 @@
       await openPlaybackProxy(currentRecord.value);
       return;
     }
-    if (!videoUrl.value) {
-      message.warning('录像文件正在生成，请等待生成完成后再播放');
-      return;
+    try {
+      const playback = await resumeHttpMp4Playback({ playbackId: playbackId.value });
+      await applyPlaybackResponse(playback);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '继续历史回放失败');
     }
-    await playHistoryVideo();
   }
 
-  function onPause() {
-    pausePlayer();
-    isPlaying.value = false;
-  }
-
-  function setFullscreen() {
-    setPlayerFullscreen(true);
+  async function onPause() {
+    if (!playbackId.value) return;
+    try {
+      const playback = await pauseHttpMp4Playback({ playbackId: playbackId.value });
+      stopProgressSync();
+      updatePlaybackState(playback);
+      emitPlaybackProgress(playbackPositionMs.value);
+      pausePlayer();
+      isPlaying.value = false;
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '暂停历史回放失败');
+    }
   }
 
   async function onReplay() {
@@ -272,31 +365,23 @@
     await releasePlaybackProxy();
     isPlaying.value = false;
     videoUrl.value = '';
-    playbackDuration.value = undefined;
+    playbackDurationMs.value = 0;
+    playbackPositionMs.value = 0;
+    timelinePositionMs.value = 0;
     const sessionVersion = ++playbackSessionVersion;
     try {
-      const openResult = await openHistoryPlayback({
+      const playback = await openHttpMp4Playback({
         cameraIndexCode: deviceCode.value,
         beginTime: record.beginTime,
         endTime: record.endTime,
         recordLocation: 0,
         streamType: 1,
       });
-      if (!openResult.playbackId) {
+      if (sessionVersion !== playbackSessionVersion) return;
+      if (!playback.playbackId || !playback.httpMp4Url) {
         throw new Error('未获取到历史回放任务ID');
       }
-      playbackId.value = openResult.playbackId;
-      const playback = await waitForPlaybackReady(openResult, sessionVersion);
-      if (!playback || sessionVersion !== playbackSessionVersion) return;
-
-      const streamUrl = normalizeVideoStreamUrl(playback.mp4Url);
-      if (!streamUrl) {
-        throw new Error('录像生成完成，但未获取到 MP4 点播地址');
-      }
-      playbackDuration.value = Number(playback.durationSeconds) || undefined;
-      videoUrl.value = streamUrl;
-      await recreateHistoryPlayer();
-      await playHistoryVideo(streamUrl);
+      await applyPlaybackResponse(playback);
     } catch (error) {
       if (sessionVersion === playbackSessionVersion) {
         await releasePlaybackProxy();
@@ -305,41 +390,183 @@
     }
   }
 
-  async function waitForPlaybackReady(initialResult: PlaybackOpenResponse, sessionVersion: number) {
-    let playback = initialResult;
-    // 录像切片和固定 MP4 文件生成通常需要数秒；超时后保留可重新点击“播放”的机会。
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      if (sessionVersion !== playbackSessionVersion) return null;
-
-      if (playback.status === 'READY') {
-        return playback;
-      }
-      if (playback.status === 'FAILED') {
-        throw new Error('历史录像生成失败');
-      }
-      if (playback.status === 'CLOSED') {
-        throw new Error('历史录像生成任务已关闭');
-      }
-
-      await wait(1000);
-      if (sessionVersion !== playbackSessionVersion) return null;
-      playback = await getHistoryPlaybackStatus(playback.playbackId);
+  function updatePlaybackState(playback: PlaybackHttpMp4Response) {
+    playbackId.value = playback.playbackId || playbackId.value;
+    // 列表接口每条记录就是本次点播的有效时间段（当前场景为 5 分钟一条）。
+    // 优先使用该起止时间计算总长，避免 HTTP-fMP4 会话返回整段录像时长而拉长进度条。
+    const durationMs = getCurrentRecordDurationMs() || Number(playback.durationMs);
+    if (Number.isFinite(durationMs) && durationMs >= 0) {
+      playbackDurationMs.value = durationMs;
     }
-    throw new Error('历史录像生成超时，请稍后重试');
+    const positionMs = Number(playback.positionMs);
+    if (Number.isFinite(positionMs) && positionMs >= 0) {
+      playbackPositionMs.value = Math.min(positionMs, playbackDurationMs.value || positionMs);
+    }
+    timelinePositionMs.value = playbackPositionMs.value;
   }
 
-  function wait(duration: number) {
-    return new Promise<void>((resolve) => window.setTimeout(resolve, duration));
+  function getCurrentRecordDurationMs() {
+    const record = currentRecord.value;
+    if (!record?.beginTime || !record.endTime) return 0;
+
+    const beginTimestamp = parseHistoryTime(record.beginTime);
+    const endTimestamp = parseHistoryTime(record.endTime);
+    return Number.isFinite(beginTimestamp) && Number.isFinite(endTimestamp) && endTimestamp > beginTimestamp ? endTimestamp - beginTimestamp : 0;
+  }
+
+  function parseHistoryTime(value: string) {
+    // 保持接口原始时间字符串用于请求，只在前端计算进度条总时长时转换时间戳。
+    return new Date(value.replace(' ', 'T')).getTime();
+  }
+
+  function millisecondsToSeconds(milliseconds: number) {
+    return Math.max(0, Math.floor(milliseconds / 1000));
+  }
+
+  function formatTimelineDuration(milliseconds: number) {
+    const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const minuteSecond = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    return hours ? `${String(hours).padStart(2, '0')}:${minuteSecond}` : minuteSecond;
+  }
+
+  function formatHistoryDateTime(timestamp: number) {
+    const date = new Date(timestamp);
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+
+  function getCurrentPlaybackPositionMs() {
+    if (!playbackStartedAt) return playbackPositionMs.value;
+    const elapsedMs = Date.now() - playbackStartedAt;
+    return Math.min(playbackPositionMs.value + elapsedMs, playbackDurationMs.value || playbackPositionMs.value + elapsedMs);
+  }
+
+  function emitPlaybackProgress(positionMs = getCurrentPlaybackPositionMs()) {
+    // EasyPlayer simple 回放进度条监听 playbackTime，参数单位为秒。
+    // HTTP-fMP4 没有固定文件时长，因此由后端回放状态提供准确时间轴。
+    const normalizedPositionMs = Math.min(Math.max(0, positionMs), playbackDurationMs.value || positionMs);
+    if (pendingTimelineSeekPositionMs === undefined) {
+      timelinePositionMs.value = normalizedPositionMs;
+    }
+    const player = getPlayer();
+    player?.emit?.('playbackTime', normalizedPositionMs / 1000 || 0.001);
+  }
+
+  function startProgressSync() {
+    stopProgressSync();
+    playbackStartedAt = Date.now();
+    const syncProgress = () => {
+      emitPlaybackProgress();
+      progressAnimationFrame = window.requestAnimationFrame(syncProgress);
+    };
+    syncProgress();
+  }
+
+  function stopProgressSync(keepCurrentPosition = false) {
+    if (keepCurrentPosition) {
+      playbackPositionMs.value = getCurrentPlaybackPositionMs();
+    }
+    playbackStartedAt = 0;
+    if (progressAnimationFrame !== undefined) {
+      window.cancelAnimationFrame(progressAnimationFrame);
+      progressAnimationFrame = undefined;
+    }
+    emitPlaybackProgress(playbackPositionMs.value);
+  }
+
+  function getTimelinePosition(event: PointerEvent) {
+    const track = timelineTrackRef.value;
+    if (!track || !playbackDurationMs.value) return 0;
+    const { left, width } = track.getBoundingClientRect();
+    const percentage = Math.min(1, Math.max(0, (event.clientX - left) / width));
+    return Math.round(percentage * playbackDurationMs.value);
+  }
+
+  function startTimelineSeek(event: PointerEvent) {
+    if (!isTimelineAvailable.value) return;
+    event.preventDefault();
+    isTimelineSeeking = true;
+    updateTimelineSeekPreview(event);
+    document.addEventListener('pointermove', updateTimelineSeekPreview);
+    document.addEventListener('pointerup', finishTimelineSeek, { once: true });
+  }
+
+  function updateTimelineSeekPreview(event: PointerEvent) {
+    if (!isTimelineSeeking) return;
+    timelinePositionMs.value = getTimelinePosition(event);
+  }
+
+  function finishTimelineSeek(event: PointerEvent) {
+    if (!isTimelineSeeking) return;
+    updateTimelineSeekPreview(event);
+    isTimelineSeeking = false;
+    document.removeEventListener('pointermove', updateTimelineSeekPreview);
+    pendingTimelineSeekPositionMs = timelinePositionMs.value;
+    schedulePlaybackSeek(timelinePositionMs.value);
+  }
+
+  async function applyPlaybackResponse(playback: PlaybackHttpMp4Response) {
+    const streamUrl = normalizeVideoStreamUrl(playback.httpMp4Url);
+    if (!playback.playbackId || !streamUrl) {
+      throw new Error('未获取到 HTTP-fMP4 回放地址');
+    }
+    updatePlaybackState(playback);
+    videoUrl.value = streamUrl;
+    await recreateHistoryPlayer();
+    await playHistoryVideo(streamUrl);
+  }
+
+  function schedulePlaybackSeek(positionMs: number) {
+    if (!playbackId.value || !Number.isFinite(positionMs)) return;
+    const targetPositionMs = Math.min(Math.max(0, positionMs), playbackDurationMs.value || positionMs);
+    const requestVersion = ++seekRequestVersion;
+    if (seekTimer) window.clearTimeout(seekTimer);
+    const sessionVersion = playbackSessionVersion;
+    seekTimer = window.setTimeout(() => {
+      seekTimer = undefined;
+      void seekPlayback(targetPositionMs, sessionVersion, requestVersion);
+    }, 180);
+  }
+
+  async function seekPlayback(positionMs: number, sessionVersion: number, requestVersion: number) {
+    if (sessionVersion !== playbackSessionVersion || requestVersion !== seekRequestVersion || !playbackId.value) return;
+    try {
+      const playback = await seekHttpMp4Playback({ playbackId: playbackId.value, positionMs: Math.round(positionMs) });
+      if (sessionVersion !== playbackSessionVersion || requestVersion !== seekRequestVersion) return;
+      pendingTimelineSeekPositionMs = undefined;
+      await applyPlaybackResponse(playback);
+    } catch (error) {
+      if (sessionVersion === playbackSessionVersion && requestVersion === seekRequestVersion) {
+        pendingTimelineSeekPositionMs = undefined;
+        emitPlaybackProgress();
+        message.error(error instanceof Error ? error.message : '定位历史回放失败');
+      }
+    }
   }
 
   async function releasePlaybackProxy() {
     playbackSessionVersion += 1;
+    seekRequestVersion += 1;
+    isTimelineSeeking = false;
+    pendingTimelineSeekPositionMs = undefined;
+    document.removeEventListener('pointermove', updateTimelineSeekPreview);
+    document.removeEventListener('pointerup', finishTimelineSeek);
+    if (seekTimer) {
+      window.clearTimeout(seekTimer);
+      seekTimer = undefined;
+    }
+    stopProgressSync();
     const activePlaybackId = playbackId.value;
     playbackId.value = '';
-    playbackDuration.value = undefined;
+    playbackDurationMs.value = 0;
+    playbackPositionMs.value = 0;
+    timelinePositionMs.value = 0;
     if (!activePlaybackId) return;
     try {
-      await closeHistoryPlayback(activePlaybackId);
+      await closeHttpMp4Playback({ playbackId: activePlaybackId });
     } catch (error) {
       console.warn('关闭历史回放代理失败', error);
     }
@@ -614,6 +841,10 @@
   .player_box {
     position: absolute;
     inset: 0;
+
+    :deep(.easyplayer-control-progress-box) {
+      display: none !important;
+    }
   }
 
   .control-row {
@@ -625,11 +856,151 @@
     flex-wrap: wrap;
   }
 
+  .history-timeline {
+    display: flex;
+    flex: 1 1 320px;
+    align-items: center;
+    min-width: 0;
+    gap: 10px;
+
+    &.disabled {
+      color: #bfbfbf;
+      opacity: 0.45;
+
+      .history-timeline-track {
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .history-timeline-track {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    height: 16px;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+
+    &:hover {
+      .history-timeline-buffer,
+      .history-timeline-played {
+        height: 4px;
+      }
+
+      .history-timeline-handle {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+  }
+
+  .history-playback-toggle {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: #fff;
+    cursor: pointer;
+    background: @primary-color;
+    border: 0;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px fade(@primary-color, 32%);
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:hover:not(:disabled) {
+      color: #fff;
+      background: darken(@primary-color, 7%);
+      box-shadow: 0 3px 8px fade(@primary-color, 42%);
+      transform: scale(1.06);
+    }
+
+    &:disabled {
+      color: #fff;
+      cursor: not-allowed;
+      background: #bfbfbf;
+      box-shadow: none;
+    }
+  }
+
+  .history-play-icon {
+    width: 0;
+    height: 0;
+    margin-left: 2px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid #fff;
+  }
+
+  .history-pause-icon {
+    display: inline-flex;
+    gap: 4px;
+
+    i {
+      display: block;
+      width: 3px;
+      height: 12px;
+      background: #fff;
+      border-radius: 1px;
+    }
+  }
+
+  .history-timeline-buffer,
+  .history-timeline-played {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 2px;
+    border-radius: 99px;
+    transform: translateY(-50%);
+  }
+
+  .history-timeline-buffer {
+    right: 0;
+    background: #d9d9d9;
+  }
+
+  .history-timeline-played {
+    z-index: 1;
+    background: @primary-color;
+  }
+
+  .history-timeline-handle {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    background: #fff;
+    border: 2px solid @primary-color;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .history-timeline-total {
+    flex: 0 0 auto;
+    color: #595959;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
   .control-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 14px;
   }
 
   .radio-item {
@@ -637,15 +1008,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    transition: all 0.2s ease;
+    padding: 2px 0;
+    color: #595959;
+    font-size: 13px;
+    line-height: 1.5;
+    transition: color 0.2s ease;
   }
 
   .radio-item:hover {
-    color: #07baf4;
-    border-color: #07baf4;
+    color: @primary-color;
   }
 
   :global(.history-date-picker-popup) {

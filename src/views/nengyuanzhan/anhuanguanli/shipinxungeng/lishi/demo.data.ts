@@ -92,13 +92,10 @@ export const searchFormSchema: FormSchema[] = [
 
 export const columnsCamera: BasicColumn[] = [
   {
-    title: '摄像头列表',
-    dataIndex: 'deviceName',
+    title: '摄像头编码',
+    dataIndex: 'deviceCode',
     width: 170,
     resizable: true,
-    customRender: ({ record }) => {
-      return record?.deviceName || record?.deviceCode || '-';
-    },
   },
 
   {
@@ -174,6 +171,12 @@ export const columnsCamera: BasicColumn[] = [
 
 export const columnsAlarm: BasicColumn[] = [
   {
+    title: '摄像机编码',
+    dataIndex: 'cameraCode',
+    width: 170,
+    resizable: true,
+  },
+  {
     title: '事件编号',
     dataIndex: 'eventCode',
     width: 170,
@@ -198,9 +201,21 @@ export const columnsAlarm: BasicColumn[] = [
     resizable: true,
   },
   {
+    title: '事件名称',
+    dataIndex: 'eventName',
+    width: 140,
+    resizable: true,
+  },
+  {
     title: '事件位置',
     dataIndex: 'location',
     width: 140,
+    resizable: true,
+  },
+  {
+    title: '事件描述',
+    dataIndex: 'description',
+    width: 180,
     resizable: true,
   },
   {
@@ -208,5 +223,24 @@ export const columnsAlarm: BasicColumn[] = [
     dataIndex: 'reportUserId',
     width: 140,
     resizable: true,
+  },
+  {
+    title: '抓拍图片',
+    dataIndex: 'imageUrl',
+    width: 140,
+    resizable: true,
+    customRender: ({ text }) => {
+      return renderTablePreviewImage({
+        text,
+        width: 100,
+        height: 60,
+        style: {
+          width: '100px',
+          height: '60px',
+          objectFit: 'cover',
+          borderRadius: '4px',
+        },
+      });
+    },
   },
 ];

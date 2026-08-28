@@ -46,9 +46,7 @@
   import { normalizeVideoStreamUrl } from '@/views/nengyuanzhan/anhuanguanli/utils/videoStreamUrl';
   import { BasicModal, useModal, useModalInner } from '/@/components/Modal';
   import { usePermission } from '/@/hooks/web/usePermission';
-  import { defHttp } from '/@/utils/http/axios';
-  import { uploadUrl } from '/@/api/common/api';
-  import { completeTask, getStartTask, getVideoPatrolState, PatrolStateResponse, saveCheckIn, startVideoPatrol, stopVideoPatrol } from './demo.api';
+  import { completeTask, getStartTask, getVideoPatrolState, PatrolStateResponse, saveCheckIn, startVideoPatrol, stopVideoPatrol, uploadAlarmImage } from './demo.api';
   import DemoModalAlarm from './DemoModalAlarm.vue';
 
   const [registerModalAlarm, { openModal: openModalAlarm }] = useModal();
@@ -502,26 +500,7 @@
   async function uploadScreenshot(dataUrl: string) {
     // 后端存储路径不支持部分中文文件名，上传时统一使用 ASCII 文件名。
     const file = dataUrlToFile(dataUrl, `video_patrol_${Date.now()}.jpeg`);
-    const result: any = await defHttp.uploadFile(
-      { url: uploadUrl },
-      {
-        file,
-        filename: file.name,
-        data: {
-          biz: 'temp',
-        },
-      },
-      { isReturnResponse: true }
-    );
-
-    // uploadFile 在不同请求配置下可能返回响应体本身或 AxiosResponse，兼容两种结构。
-    const payload = result?.data || result;
-    const imageUrl = payload?.result || payload?.url || payload?.message || '';
-    if (payload?.success === false || !imageUrl) {
-      throw new Error(payload?.message || '截图上传失败');
-    }
-
-    return String(imageUrl);
+    return uploadAlarmImage(file);
   }
 
   async function onScreenshot() {

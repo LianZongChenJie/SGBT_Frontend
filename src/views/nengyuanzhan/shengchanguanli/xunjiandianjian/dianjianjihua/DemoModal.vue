@@ -46,7 +46,7 @@
     <BasicTable @register="registerTableUpdate" :rowSelection="rowSelectionFujian">
       <template #tableTitle>
         <!--        <BasicUpload :maxSize="20000" :maxNumber="10"  :api="uploadApi" class="my-5" :accept="['png/*']" />-->
-        <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="onImportXls">上传文档 </j-upload-button>
+        <j-upload-button type="primary" preIcon="ant-design:import-outlined" @click="handleUploadAttachment">上传文档 </j-upload-button>
         <!--        <j-upload-button type="primary" preIcon="ant-design:import-outlined"  @click="handleImport">上传文档 </j-upload-button>-->
 
         <!--        <a-button v-if="hasPermission('energy:energy_device_info:exportXls')" preIcon="ant-design:export-outlined" type="primary" @click="handleExportXls('单表示例', getExportUrl,exportParams)">-->
@@ -80,22 +80,21 @@
 </template>
 <script lang="ts" setup>
   import { defHttp } from '/@/utils/http/axios';
-  import { useGlobSetting } from '/@/hooks/setting';
 
-  const { uploadUrl = '' } = useGlobSetting();
-  const prefix = import.meta.env.VITE_GLOB_API_URL_PREFIX;
   import { BasicUpload } from '/@/components/Upload';
   import {nextTick, ref, computed, unref, reactive, toRaw } from 'vue';
   import { BasicModal, useModal, useModalInner } from '/@/components/Modal';
   import { usePermission } from '/@/hooks/web/usePermission';
+  import { useMessage } from '/@/hooks/web/useMessage';
 
   const [registerModalYulan, { openModal: openModalYulan }] = useModal();
   const [registerModalSet, { openModal: openModalShezhi }] = useModal();
   const [registerModalAdd, { openModal: openModalAdd }] = useModal();
   const [registerModalGuize, { openModal: openModalGuize }] = useModal();
   const { hasPermission } = usePermission();
+  const { createMessage } = useMessage();
   import { BasicForm, FormSchema, useForm } from '/@/components/Form/index';
-  import { getDemoById, saveOrUpdateDemo, batchDeleteDemo, getImportUrlFujian, deleteDemoMingxi, getFileInfo } from './demo.api';
+  import { getDemoById, saveOrUpdateDemo, batchDeleteDemo, getImportUrlFujian, deleteDemoMingxi } from './demo.api';
   import DemoModalYulan from './DemoModalYulan.vue';
   import DemoModalShezhi from './DemoModalShezhi.vue';
   import DemoModalSheBei from './DemoModalSheBei.vue';
@@ -596,7 +595,7 @@
   });
   const [registerTable, { reload: reloadMingxi, setTableData }] = tableContextMingxi;
 
-  const { tableContext: tableContextFujian, onImportXls } = useListPage({
+  const { tableContext: tableContextFujian } = useListPage({
     tableProps: {
       title: '',
       // api: getXunjianjihuafujianList,
@@ -625,19 +624,40 @@
       // 上传
       url: getImportUrlFujian,
       success: (res) => {
-        let url = getFileAccessHttpUrl(res.message);
-        // 传文件名调取文件详情信息
-        getFileInfo({ url }).then((record) => {
-          record.fileUrl = url;
-          attachmentTableData.value = mergeAttachmentRows([record]);
-          setTableDataFujian(attachmentTableData.value);
-          checkedKeysUpdate.value = [];
-          selectedRowsFujian.value = attachmentTableData.value;
-        });
+        const record = buildAttachmentRow(res);
+        if (!record.fileUrl) {
+          return;
+        }
+        attachmentTableData.value = mergeAttachmentRows([record]);
+        setTableDataFujian(attachmentTableData.value);
+        checkedKeysUpdate.value = [];
+        selectedRowsFujian.value = attachmentTableData.value;
       },
     },
   });
   const [registerTableUpdate, { setTableData: setTableDataFujian }] = tableContextFujian;
+
+  async function handleUploadAttachment(data) {
+    try {
+      const originalName = data.file?.name || '';
+      const res = await defHttp.uploadFile(
+        { url: getImportUrlFujian },
+        { file: data.file, filename: buildSafeUploadFileName(originalName) },
+        { isReturnResponse: true }
+      );
+      const record = buildAttachmentRow(res, originalName);
+      if (!record.fileUrl) {
+        createMessage.error('文件上传失败');
+        return;
+      }
+      attachmentTableData.value = mergeAttachmentRows([record]);
+      setTableDataFujian(attachmentTableData.value);
+      checkedKeysUpdate.value = [];
+      selectedRowsFujian.value = attachmentTableData.value;
+    } catch (error) {
+      createMessage.error('文件上传失败');
+    }
+  }
 
   //表单赋值
   const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
@@ -1004,5 +1024,25 @@ function handleShezhi(record) {
       map.set(String(key), item);
     });
     return Array.from(map.values());
+  }
+
+  function buildAttachmentRow(res, originalName = '') {
+    const uploadResult = res?.result || {};
+    const filePath = res?.message || uploadResult.url || uploadResult.fileUrl || uploadResult.filePath || '';
+    const fileUrl = filePath ? getFileAccessHttpUrl(filePath) : '';
+    const fileName = originalName || uploadResult.fileName || uploadResult.name || filePath.substring(filePath.lastIndexOf('/') + 1);
+    return {
+      id: Date.now(),
+      fileName,
+      filePath,
+      fileUrl,
+      fileSize: uploadResult.fileSize || uploadResult.size || '',
+    };
+  }
+
+  function buildSafeUploadFileName(fileName = '') {
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const ext = lastDotIndex >= 0 ? fileName.substring(lastDotIndex).replace(/[^A-Za-z0-9.]/g, '') : '';
+    return `attachment_${Date.now()}${ext || ''}`;
   }
 </script>

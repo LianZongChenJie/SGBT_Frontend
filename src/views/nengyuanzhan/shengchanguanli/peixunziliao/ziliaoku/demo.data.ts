@@ -133,15 +133,8 @@ export const formSchema: FormSchema[] = [
     field: 'filePath',
     label: '资料上传',
     required: false,
-    component: 'JUpload',
-    componentProps: {
-      //是否显示选择按钮
-      text: '文件上传',
-      //最大上传数
-      maxCount: 1,
-      //是否显示下载按钮
-      download: true,
-    },
+    component: 'Input',
+    slot: 'materialUpload',
   },
   {
     field: 'materialTime',

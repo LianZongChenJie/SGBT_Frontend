@@ -1,10 +1,6 @@
 import { defHttp } from '/@/utils/http/axios';
 import { Modal } from 'ant-design-vue';
-import { useGlobSetting } from '/@/hooks/setting';
 
-const globSetting = useGlobSetting();
-const baseUploadUrl = globSetting.uploadUrl;
-const prefix = import.meta.env.VITE_GLOB_API_URL_PREFIX;
 export enum Api {
   listShebei = '/operation/energyDeviceInfo/list',
 
@@ -67,7 +63,7 @@ export const getExportUrlFujian = Api.exportXlsFujian;
  */
 export const getImportUrl = Api.importExcel;
 // 导入附件
-export const getImportUrlFujian = `${baseUploadUrl}${prefix}/sys/common/upload`;
+export const getImportUrlFujian = '/sys/common/upload';
 
 export const saveKaiqiChexiao = (params, handleSuccess?) => {
   return defHttp.post({ url: Api.kaiqiChexiao, params }).then(() => {

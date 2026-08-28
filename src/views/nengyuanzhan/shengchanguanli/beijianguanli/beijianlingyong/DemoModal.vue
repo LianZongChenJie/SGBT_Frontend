@@ -98,7 +98,7 @@
   const [registerModalBeijianlingyong, { openModal: openModalBeijianlingyong }] = useModal();
   const { hasPermission } = usePermission();
   import { BasicForm, FormSchema, useForm } from '/@/components/Form/index';
-  import { getDemoById, getSheetNoDetail } from './demo.api';
+  import { getDemoById, getImportUrlFujian, getSheetNoDetail } from './demo.api';
   import { saveOrUpdateDemoLingyong } from '@/views/nengyuanzhan/shengchanguanli/beijianguanli/chukutaizhang/demo.api';
   import { getUserData } from '@/views/system/usersetting/UserSetting.api';
   import { queryTreeList } from '@/api/common/api';
@@ -110,6 +110,7 @@
 
   const checkedKeysUpdate = ref<Array<string | number>>([]);
   const checkedKeys = ref<Array<string | number>>([]);
+  const selectedRowsFujian = ref<any[]>([]);
   const exportParams = computed(() => {
     let paramsForm = {
       // id: id.value,
@@ -186,6 +187,28 @@
     exportConfig: {
       name: '下载模版',
       url: getExportUrl,
+    },
+    importConfig: {
+      url: getImportUrlFujian,
+      success: (res) => {
+        const filePath = res?.message || res?.result?.url || res?.result?.fileUrl || res?.result?.filePath || '';
+        if (!filePath) {
+          return;
+        }
+        const fileName = filePath.substring(filePath.lastIndexOf('/') + 1);
+        const rows = [
+          ...selectedRowsFujian.value,
+          {
+            id: Date.now(),
+            fileName,
+            filePath,
+            fileSize: res?.result?.fileSize || '',
+          },
+        ];
+        selectedRowsFujian.value = rows;
+        checkedKeysUpdate.value = [];
+        setTableDataFujian(rows);
+      },
     },
   });
   const [registerTableUpdate, { setTableData: setTableDataFujian }] = tableContextFujian;

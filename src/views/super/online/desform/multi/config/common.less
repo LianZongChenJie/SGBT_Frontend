@@ -1,0 +1,393 @@
+.inner-content {
+  padding: 0 40px 32px;
+
+  .no-data{
+   h6{
+     font-size: 20px;
+     font-weight: 500;
+     color: rgb(51, 51, 51);
+     text-align: center;
+     padding: 32px 0px 0px;
+     margin: 0px;
+   }
+  }
+  
+  .tip {
+    flex: 1;
+    color: #9e9e9e !important;
+    margin-top: 8px !important;
+  }
+  .title {
+    color: #333;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 25px 0 0;
+  }
+  .config-detail {
+    padding: 32px 0 0;
+    
+    /** shaixuan----begin*/
+    .query-field-list{
+      margin-top: 20px;
+      max-height: 300px;
+      overflow-y: auto;
+      .query-field-item{
+        cursor: pointer;
+        display: flex;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #333;
+        line-height: 22px;
+        padding: 8px 5px;
+        margin-bottom: 10px;
+        &:hover{
+          background: #fafafa;
+          .right-icon{
+            display: block;
+           
+          }
+        }
+        .right-icon{
+          display: none;
+          width: 45px;
+          .anticon-delete{
+            margin-right: 5px;
+            &:hover{
+              color: #f44336;
+            }
+          }
+          .anticon-edit{
+            margin-right: 10px;
+            &:hover{
+              color: #2196f3;
+            }
+          }
+          
+        }
+      }
+    }
+    /** shaixuan----end*/
+
+    /** paixu---begin */
+    .order-config{
+      margin-top:20px;
+      .order-item{
+        display: flex;
+        margin: 12px 0;
+        >div{
+          margin: 0 5px;
+        }
+        
+        .right-icon{
+          height: 32px;
+          line-height: 32px;
+          .anticon{
+            cursor: pointer;
+            color: #757575;
+            font-size: 15px;
+            margin: 0 5px;
+            &.disabled{
+              color: #ddd!important;
+            }
+            &:hover{
+              color: #2196f3;
+            }
+          }
+        }
+      }
+    }
+    /** paixu---end */
+
+    /**shujuguolv-beign*/
+    .condition-item {
+      font-size: 13px;
+      
+      display: flex;
+      flex-direction: column;
+      .ant-select-selector {
+        border: none;
+        font-size: 13px;
+      }
+      .ant-select-item{
+        font-size: 13px;
+      }
+      .ant-input{
+        font-size: 13px;
+      }
+      input{
+        font-size: 13px;
+      }
+      .condition-val {
+        margin-top: 3px;
+        display: flex;
+        justify-content: space-between;
+
+        .ant-select-selector{
+          border: 1px solid #d9d9d9;
+        }
+
+        .condition-rela {
+          line-height: 32px;
+          line-height: 32px;
+          .ant-select-selector {
+            padding: 0;
+          }
+          .ant-select {
+            .ant-select-selection-item {
+              padding: 0;
+              padding-left: 8px;
+            }
+          }
+        }
+      }
+      .condition-select {
+        border: none;
+        .ant-select {
+          border: none;
+        }
+      }
+      .icon-remove {
+        cursor: pointer;
+        visibility: hidden;
+        color: #757575;
+        margin-right: 10px;
+        &:hover {
+          color: #2196f3;
+        }
+      }
+      &:hover {
+        .icon-remove {
+          visibility: visible;
+        }
+      }
+    }
+    .add-button {
+      color: #757575;
+      padding-top: 6px;
+      padding-bottom: 6px;
+      border-radius: 20px;
+      height: 36px;
+      &:hover {
+        color: #2196f3;
+      }
+    }
+
+    .filter-group-btn {
+      position: absolute;
+      right: 45px;
+      top: -33px;
+    }
+    /**shujuguolv-end*/
+
+    .label {
+      font-size: 13px !important;
+      font-weight: 700;
+      
+      .clear-text{
+        cursor: pointer;
+        color: #9e9e9e;
+        &:hover{
+          color: #f44336;
+        }
+      }
+    }
+    .tip {
+      flex: 1;
+      color: #9e9e9e !important;
+      margin-top: 8px !important;
+    }
+
+    .config-item {
+      margin-bottom: 32px !important;
+      margin-top: 12px !important;
+
+      .ant-radio-button-wrapper {
+        padding: 0 20px;
+      }
+
+      .my-input {
+        border: none !important;
+      }
+
+      .field-warp {
+        .field {
+          border-radius: 3px;
+          height: 36px;
+          line-height: 36px;
+          cursor: pointer;
+        }
+      }
+
+      .all-fields {
+        max-height: 270px;
+        overflow-y: auto;
+        width: 360px;
+        .field {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-end;
+          > div:first-child {
+            flex: 1;
+          }
+          .icon {
+            width: 30px;
+            display: none;
+          }
+          &:hover {
+            background-color: #f5f5f5;
+            .icon {
+              display: block;
+            }
+          }
+        }
+      }
+
+      .buttons {
+        margin: 10px 0;
+        width: 360px;
+        display: flex;
+        justify-content: space-between;
+        .column-num {
+          height: 32px;
+          line-height: 32px;
+          color: #757575;
+        }
+        .ant-btn {
+          background: #f5f5f5;
+          color: #757575;
+          margin-right: 5px;
+          border-radius: 5px;
+          font-size: 12px;
+          padding: 0px 10px;
+          &:hover {
+            color: #2196f3;
+          }
+        }
+      }
+    }
+  }
+  
+ 
+}
+
+.dragClass {
+  background-color: #b3afe6 !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-image: none !important;
+}
+
+/** shujuguolv---begin */
+.view-pop-field-select {
+  .ant-popover-title {
+    padding-left: 5px;
+    padding-right: 5px;
+    .my-input {
+      border: none !important;
+    }
+  }
+  .ant-popover-inner-content {
+    padding: 10px 0;
+  }
+  .field-list {
+    max-height: 320px;
+    overflow-y: auto;
+    .field-item {
+      width: 100%;
+      height: 36px;
+      line-height: 36px;
+      padding-left: 15px;
+      cursor: pointer;
+      &:hover {
+        background-color: #2196f3;
+        color: #fff;
+      }
+      > div {
+        box-sizing: border-box;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+      }
+    }
+
+    .split {
+      border-top: 1px solid rgb(221, 221, 221);
+      margin: 8px 0px;
+    }
+  }
+
+  .all-fields {
+    max-height: 270px;
+    overflow-y: auto;
+    width: 280px;
+    .field {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      padding: 6px;
+      cursor: pointer;
+      > div:first-child {
+        flex: 1;
+      }
+      .icon {
+        width: 30px;
+        display: none;
+        color: #979797;
+        &:hover{
+          color: #2196f3;
+        }
+      }
+      &:hover {
+        background-color: #f5f5f5;
+        .icon {
+          display: block;
+        }
+      }
+    }
+  }
+  
+  .pop-buttons{
+    display:flex;justify-content:space-between;
+    padding: 0 15px;
+    .ant-btn {
+      background: #f5f5f5;
+      color: #757575;
+      margin-right: 5px;
+      border-radius: 5px;
+      font-size: 12px;
+      padding: 0px 10px;
+      padding: 0 32px;
+      &:hover {
+        color: #2196f3;
+        background-color: #f0f0f0;
+      }
+    }
+  }
+
+  
+  
+}
+/** shujuguolv---end */
+
+.ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.virtual-select{
+  display: flex;
+  justify-content: space-between;
+  height: 34px;
+  border: 1px solid #ddd;
+  line-height: 34px;
+  border-radius: 3px;
+  width: 280px;
+  padding: 0 10px;
+  .anticon{
+    color: #ddd;
+  }
+}

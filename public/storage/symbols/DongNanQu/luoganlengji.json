@@ -1,0 +1,134 @@
+{
+  "modified": "Thu Jun 11 2026 15:44:58 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [
+    {
+      "attr": "name",
+      "valueType": "String",
+      "name": "名字"
+    },
+    {
+      "attr": "LDJSYL",
+      "valueType": "String",
+      "name": "冷冻进水压力"
+    },
+    {
+      "attr": "LDCSYL",
+      "valueType": "String",
+      "name": "冷冻出水压力"
+    },
+    {
+      "attr": "LQCSYL",
+      "valueType": "String",
+      "name": "冷却出水压力"
+    },
+    {
+      "attr": "LQJSYL",
+      "valueType": "String",
+      "name": "冷却进水压力"
+    },
+    {
+      "attr": "JZQTKZ",
+      "valueType": "String",
+      "name": "机组启停控制"
+    }
+  ],
+  "width": 250,
+  "height": 100,
+  "comps": [
+    {
+      "type": "image",
+      "color": {
+        "func": "__ht__function(data, view) {\nif (data.a('JZQTKZ')=='启动') {\r\n    return '#54f504'\r\n}else{\r\n    return '#fff'\r\n}\n}"
+      },
+      "name": "assets/DongNanQu/@1x_图层 2.png",
+      "displayName": "@1x_图层 2",
+      "rect": [
+        93.58523,
+        35.50313,
+        62.82955,
+        45.19318
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@name",
+        "value": "1号螺杆冷机"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        93.58523,
+        17.50313,
+        62.82955,
+        18
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@LDJSYL",
+        "value": "5.8bar"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        199.68315,
+        35.50313,
+        49.90926,
+        13.99865
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@LDCSYL",
+        "value": "5.8bar"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        199.68315,
+        63.45665,
+        49.90926,
+        13.99865
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@LQJSYL",
+        "value": "5.8bar"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        0.29294,
+        65.69776,
+        50.1321,
+        13.99865
+      ]
+    },
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@LQCSYL",
+        "value": "5.8bar"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "10px arial, sans-serif",
+      "rect": [
+        0.29294,
+        35.50313,
+        50.1321,
+        13.99865
+      ]
+    }
+  ]
+}

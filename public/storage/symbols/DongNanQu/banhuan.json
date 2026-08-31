@@ -1,0 +1,38 @@
+{
+  "modified": "Tue Jun 09 2026 08:54:23 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [
+    {
+      "attr": "banhuan",
+      "valueType": "String"
+    }
+  ],
+  "width": 100,
+  "height": 100,
+  "comps": [
+    {
+      "type": "image",
+      "name": "assets/DongNanQu/图层 7.png",
+      "displayName": "图层 7",
+      "rect": [
+        19.19318,
+        18.68182,
+        61.61364,
+        76.32734
+      ]
+    },
+    {
+      "type": "text",
+      "text": "板换",
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        22.59091,
+        10.72727,
+        53.61364,
+        7.95455
+      ]
+    }
+  ]
+}

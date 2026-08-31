@@ -1,0 +1,31 @@
+{
+  "modified": "Wed Jun 17 2026 14:09:50 GMT+0800 (中国标准时间)",
+  "background": "rgb(0,0,0)",
+  "dataBindings": [
+    {
+      "attr": "value",
+      "valueType": "String",
+      "name": "值"
+    }
+  ],
+  "width": 50,
+  "height": 16,
+  "comps": [
+    {
+      "type": "text",
+      "text": {
+        "func": "attr@value",
+        "value": "文本"
+      },
+      "align": "center",
+      "color": "rgb(255,255,255)",
+      "font": "14px arial, sans-serif",
+      "rect": [
+        0.42112,
+        1.13405,
+        49.57888,
+        15.86595
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1109 @@
+{
+  "v": "7.2.4-dev1",
+  "p": {
+    "background": "rgb(0,0,0)",
+    "autoAdjustIndex": true,
+    "hierarchicalRendering": true
+  },
+  "a": {},
+  "d": [
+    {
+      "c": "ht.Text",
+      "i": 1978,
+      "p": {
+        "position": {
+          "x": -70.08365,
+          "y": 369.49704
+        },
+        "width": 47.25979,
+        "height": 12.52669
+      },
+      "s": {
+        "text": "防冻状态",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1979,
+      "p": {
+        "position": {
+          "x": 261.96274,
+          "y": 396.38312
+        },
+        "width": 71.23991,
+        "height": 25
+      },
+      "s": {
+        "text": "送风温度",
+        "text.color": "rgb(255,255,255)",
+        "text.font": "14px arial, sans-serif",
+        "text.align": "center"
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1980,
+      "p": {
+        "displayName": "不规则图形",
+        "position": {
+          "x": -426.58364,
+          "y": 459.09707
+        },
+        "width": 33.24594,
+        "height": 80.03288,
+        "segments": {
+          "__a": [
+            1,
+            2,
+            2,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": -434.69072,
+              "y": 419.08063
+            },
+            {
+              "x": -409.96067,
+              "y": 461.49311
+            },
+            {
+              "x": -443.20661,
+              "y": 499.11351
+            },
+            {
+              "x": -443.20661,
+              "y": 499.11351
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "#979797",
+        "shape.border.width": 3
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1981,
+      "p": {
+        "position": {
+          "x": -469.08122,
+          "y": 459.09707
+        }
+      },
+      "s": {
+        "text": "新风",
+        "text.font": "20px arial, sans-serif",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center"
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1982,
+      "p": {
+        "displayName": "不规则图形",
+        "position": {
+          "x": 335.88432,
+          "y": 492.57665
+        },
+        "width": 33.24594,
+        "height": 80.03288,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 327.77724,
+              "y": 452.56021
+            },
+            {
+              "x": 340.47823,
+              "y": 474.34263
+            },
+            {
+              "x": 352.50729,
+              "y": 494.97269
+            },
+            {
+              "x": 319.26135,
+              "y": 532.59309
+            },
+            {
+              "x": 319.26135,
+              "y": 532.59309
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "#979797",
+        "shape.border.width": 3
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1983,
+      "p": {
+        "position": {
+          "x": 385.88432,
+          "y": 499.11351
+        },
+        "tall": 20
+      },
+      "s": {
+        "text": "送风",
+        "text.font": "20px arial, sans-serif",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1984,
+      "p": {
+        "position": {
+          "x": -69.86854,
+          "y": 387.38312
+        },
+        "width": 58.92476,
+        "height": 17.94649
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1985,
+      "p": {
+        "displayName": "value",
+        "tag": "LOWT",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -69.86854,
+          "y": 387.38312
+        }
+      },
+      "a": {
+        "value": "正常"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1986,
+      "p": {
+        "position": {
+          "x": 329.45226,
+          "y": 394.90988
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1987,
+      "p": {
+        "displayName": "value",
+        "tag": "SAT",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 329.45226,
+          "y": 395.38312
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1988,
+      "p": {
+        "position": {
+          "x": -433.59057,
+          "y": 534.48174
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "新风阀反馈",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1989,
+      "p": {
+        "position": {
+          "x": -433.59057,
+          "y": 556.42822
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "新风阀开关",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1990,
+      "p": {
+        "position": {
+          "x": -363.7154,
+          "y": 533.50849
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1991,
+      "p": {
+        "position": {
+          "x": -363.94161,
+          "y": 554.45498
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1992,
+      "p": {
+        "displayName": "value",
+        "tag": "OADS",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -363.7154,
+          "y": 533.45498
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1993,
+      "p": {
+        "displayName": "value",
+        "tag": "OADC",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -363.7154,
+          "y": 554.69157
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1994,
+      "p": {
+        "position": {
+          "x": -131.41643,
+          "y": 560.30286
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "水阀反馈",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 1995,
+      "p": {
+        "position": {
+          "x": -130.73287,
+          "y": 581.66481
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "水阀调节",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1996,
+      "p": {
+        "position": {
+          "x": -70.23864,
+          "y": 558.19164
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1997,
+      "p": {
+        "position": {
+          "x": -70.23864,
+          "y": 579.37471
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1998,
+      "p": {
+        "displayName": "value",
+        "tag": "VLVFB",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -70.23864,
+          "y": 558.16488
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1999,
+      "p": {
+        "displayName": "value",
+        "tag": "VLVA",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -68.71354,
+          "y": 579.37471
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2000,
+      "p": {
+        "position": {
+          "x": 158.07883,
+          "y": 578.11137
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风机运行状态",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2001,
+      "p": {
+        "position": {
+          "x": 158.18168,
+          "y": 598.37471
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风机故障状态",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2002,
+      "p": {
+        "position": {
+          "x": 151.51919,
+          "y": 620.55793
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风机手自动状态",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2003,
+      "p": {
+        "position": {
+          "x": 158.07883,
+          "y": 641.50442
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风机压差状态",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2004,
+      "p": {
+        "position": {
+          "x": 171.61879,
+          "y": 661.47767
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风机启停",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2005,
+      "p": {
+        "position": {
+          "x": 242.97268,
+          "y": 576.13813
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2006,
+      "p": {
+        "displayName": "value",
+        "tag": "SFS",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 242.81551,
+          "y": 576.37471
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2007,
+      "p": {
+        "position": {
+          "x": 242.97268,
+          "y": 597.11138
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2008,
+      "p": {
+        "displayName": "value",
+        "tag": "SFF",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 242.97268,
+          "y": 597.11138
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2009,
+      "p": {
+        "position": {
+          "x": 242.97268,
+          "y": 617.84803
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2010,
+      "p": {
+        "displayName": "value",
+        "tag": "SFAM",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 243.12032,
+          "y": 617.84803
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2011,
+      "p": {
+        "position": {
+          "x": 243.12032,
+          "y": 638.79452
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2012,
+      "p": {
+        "displayName": "value",
+        "tag": "SFDP",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 243.12032,
+          "y": 638.79452
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2013,
+      "p": {
+        "position": {
+          "x": 242.97268,
+          "y": 659.74101
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2014,
+      "p": {
+        "displayName": "value",
+        "tag": "SFC",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 242.81551,
+          "y": 659.74101
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2015,
+      "p": {
+        "displayName": "value",
+        "tag": "deviceName",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 247.5827,
+          "y": 224.707
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2016,
+      "p": {
+        "displayName": "value",
+        "tag": "MODE",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 247.5073
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2017,
+      "p": {
+        "displayName": "value",
+        "tag": "SYSENA",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 265.5073
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2018,
+      "p": {
+        "displayName": "value",
+        "tag": "TSP",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 284.4436
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2019,
+      "p": {
+        "displayName": "value",
+        "tag": "HSP",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 302.76363
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2020,
+      "p": {
+        "displayName": "value",
+        "tag": "SEASON",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 320.82589
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2021,
+      "p": {
+        "position": {
+          "x": -194.05309,
+          "y": 356.97035
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "袋式过滤网",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2022,
+      "p": {
+        "position": {
+          "x": -194.05309,
+          "y": 374.90987
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2023,
+      "p": {
+        "displayName": "value",
+        "tag": "FILT",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -194.05309,
+          "y": 374.90987
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2024,
+      "p": {
+        "position": {
+          "x": 262.65794,
+          "y": 417.08063
+        },
+        "width": 71.23991,
+        "height": 25,
+        "tall": 20
+      },
+      "s": {
+        "text": "送风湿度",
+        "text.color": "rgb(255,255,255)",
+        "text.font": "14px arial, sans-serif",
+        "text.align": "center"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2025,
+      "p": {
+        "position": {
+          "x": 329.45226,
+          "y": 416.08063
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2026,
+      "p": {
+        "displayName": "value",
+        "tag": "SAH",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 329.45226,
+          "y": 415.88312
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2027,
+      "p": {
+        "position": {
+          "x": -280.16074,
+          "y": 537.40988
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "静电除尘",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2028,
+      "p": {
+        "position": {
+          "x": -279.19525,
+          "y": 554.42822
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2029,
+      "p": {
+        "displayName": "value",
+        "tag": "JDS",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -279.19525,
+          "y": 554.03952
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2030,
+      "p": {
+        "position": {
+          "x": -279.19525,
+          "y": 575.40147
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2031,
+      "p": {
+        "displayName": "value",
+        "tag": "JDAM",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": -279.19525,
+          "y": 575.40147
+        }
+      }
+    },
+    {
+      "c": "ht.Text",
+      "i": 2032,
+      "p": {
+        "position": {
+          "x": 44.16454,
+          "y": 560.30286
+        },
+        "width": 47.25979,
+        "height": 12.52669,
+        "tall": 20
+      },
+      "s": {
+        "text": "加湿",
+        "text.color": "rgb(255,255,255)",
+        "text.align": "center",
+        "text.font": "14px arial, sans-serif"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2033,
+      "p": {
+        "position": {
+          "x": 45.53464,
+          "y": 577.13813
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2034,
+      "p": {
+        "position": {
+          "x": 45.90475,
+          "y": 598.37471
+        },
+        "width": 58.92476,
+        "height": 17.94649,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgba(255,255,255,0)",
+        "shape.border.width": 1,
+        "shape.border.color": "#979797"
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2035,
+      "p": {
+        "displayName": "value",
+        "tag": "HUMS",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 45.53464,
+          "y": 577.13813
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2036,
+      "p": {
+        "displayName": "value",
+        "tag": "HUMAM",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 45.90475,
+          "y": 598.37471
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2037,
+      "p": {
+        "displayName": "form2",
+        "image": "symbols/DongNanQu/form2.json",
+        "position": {
+          "x": 246.51919,
+          "y": 285.707
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2038,
+      "p": {
+        "displayName": "value",
+        "tag": "VLVMIN",
+        "image": "symbols/DongNanQu/value.json",
+        "position": {
+          "x": 307.45226,
+          "y": 339.35584
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 2039,
+      "p": {
+        "displayName": "X_B1M_S1",
+        "image": "assets/DongNanQu/X_B1M_S1.png",
+        "position": {
+          "x": -45.23864,
+          "y": 473.40147
+        }
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 9669,
+      "p": {
+        "displayName": "fenyazhuangtai",
+        "tag": "arrow",
+        "image": "symbols/DongNanQu/fenyazhuangtai.json",
+        "position": {
+          "x": 231.3831,
+          "y": 476.57665
+        }
+      },
+      "a": {
+        "value": "active"
+      }
+    }
+  ],
+  "modified": "Wed Jun 24 2026 11:04:11 GMT+0800 (中国标准时间)",
+  "contentRect": {
+    "x": -519.08122,
+    "y": 216.707,
+    "width": 954.96554,
+    "height": 454.5568
+  }
+}

@@ -1,0 +1,359 @@
+{
+  "v": "7.2.4-dev1",
+  "p": {
+    "autoAdjustIndex": true,
+    "hierarchicalRendering": true
+  },
+  "a": {},
+  "d": [
+    {
+      "c": "ht.Node",
+      "i": 1556,
+      "p": {
+        "position": {
+          "x": 853.54211,
+          "y": 447.90199
+        },
+        "width": 1705.19614,
+        "height": 899.22653,
+        "tall": 20
+      },
+      "s": {
+        "shape": "rect",
+        "shape.background": "rgb(255,252,252)",
+        "shape.border.width": 1,
+        "shape.border.color": "rgb(61,61,61)"
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1557,
+      "p": {
+        "position": {
+          "x": 433.31635,
+          "y": 449.32452
+        },
+        "width": 0.10491,
+        "height": 902.0716,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 433.31635,
+              "y": -1.71128
+            },
+            {
+              "x": 433.31635,
+              "y": 900.36032
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "rgb(61,61,61)",
+        "shape.border.width": 1
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1558,
+      "p": {
+        "position": {
+          "x": 858.45536,
+          "y": 449.32452
+        },
+        "width": 0.10491,
+        "height": 902.0716,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 858.44224,
+              "y": -1.71128
+            },
+            {
+              "x": 858.46847,
+              "y": 900.36032
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "rgb(61,61,61)",
+        "shape.border.width": 1
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1559,
+      "p": {
+        "position": {
+          "x": 1284.54658,
+          "y": 449.54291
+        },
+        "width": 1.90446,
+        "height": 899.22653,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 1283.59436,
+              "y": -0.07035
+            },
+            {
+              "x": 1285.49882,
+              "y": 899.15617
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "rgb(61,61,61)",
+        "shape.border.width": 1
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1560,
+      "p": {
+        "position": {
+          "x": 858.45536,
+          "y": 298.97925
+        },
+        "width": 1700.55602,
+        "height": 0.1,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 8.17735,
+              "y": 298.97925
+            },
+            {
+              "x": 1708.73336,
+              "y": 298.97925
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "rgb(61,61,61)",
+        "shape.border.width": 1
+      }
+    },
+    {
+      "c": "ht.Shape",
+      "i": 1561,
+      "p": {
+        "position": {
+          "x": 858.45536,
+          "y": 599.66979
+        },
+        "width": 1700.55602,
+        "height": 0.1,
+        "tall": 20,
+        "segments": {
+          "__a": [
+            1,
+            2
+          ]
+        },
+        "points": {
+          "__a": [
+            {
+              "x": 8.17735,
+              "y": 599.66979
+            },
+            {
+              "x": 1708.73336,
+              "y": 599.66979
+            }
+          ]
+        }
+      },
+      "s": {
+        "shape.background": null,
+        "shape.border.color": "rgb(61,61,61)",
+        "shape.border.width": 1
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1562,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D1",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 219.35951,
+          "y": 147.09396
+        },
+        "width": 374.56795,
+        "height": 280.78959
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1563,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D2",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 644.66824,
+          "y": 147.09396
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1564,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D3",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 1068.9989,
+          "y": 147.09396
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1565,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D4",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 1500.38671,
+          "y": 147.09396
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1566,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D5",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 219.35951,
+          "y": 449.54291
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1567,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D6",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 644.66824,
+          "y": 449.32452
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1568,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D7",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 1068.9989,
+          "y": 449.54291
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1569,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D8",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 1500.38671,
+          "y": 446.1836
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    },
+    {
+      "c": "ht.Node",
+      "i": 1570,
+      "p": {
+        "displayName": "jiShuiKeng",
+        "tag": "PWK-D9",
+        "image": "storage/symbols/jinAnQiao/jiShuiKeng.json",
+        "position": {
+          "x": 219.35951,
+          "y": 749.7172
+        },
+        "width": 374.56795,
+        "height": 280.78959,
+        "tall": 20
+      }
+    }
+  ],
+  "modified": "Tue Jan 13 2026 14:50:39 GMT+0800 (中国标准时间)",
+  "contentRect": {
+    "x": -0.55596,
+    "y": -3.21128,
+    "width": 1710.78933,
+    "height": 905.0716
+  }
+}

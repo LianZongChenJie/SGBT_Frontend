@@ -8,6 +8,9 @@
         <template v-if="column.key === 'name'">
           {{ record.name }}
         </template>
+        <template v-if="column.key === 'desc'">
+          {{ record.desc }}
+        </template>
         <template v-if="column.key === 'pv'">
           {{ record.pv }}
         </template>
@@ -74,6 +77,11 @@
       title: '长名',
       dataIndex: 'name',
       key: 'name',
+    },
+    {
+      title: '描述',
+      dataIndex: 'desc',
+      key: 'desc',
     },
     {
       title: '值',

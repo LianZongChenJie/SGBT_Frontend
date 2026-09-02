@@ -222,6 +222,7 @@ export const formSchema: FormSchema[] = [
     field: 'deviceName',
     label: '设备名称',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 80,
@@ -249,6 +250,7 @@ export const formSchema: FormSchema[] = [
     field: 'deviceTypeId',
     label: '设备类型',
     component: 'TreeSelect',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       treeData: [],
@@ -264,6 +266,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceModule',
     label: '设备型号',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: {
@@ -292,6 +295,7 @@ export const formSchema: FormSchema[] = [
     field: 'factory',
     label: '设备厂家',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 60,
@@ -302,28 +306,11 @@ export const formSchema: FormSchema[] = [
     field: 'supplier',
     label: '供应商',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 60,
       placeholder: '请输入供应商',
-    },
-  },
-  {
-    field: 'devicePic',
-    label: '设备图片',
-    required: false,
-    component: 'JImageUpload',
-    componentProps: {
-      //按钮显示文字
-      text: '上传图片',
-      //支持两种基本样式picture和picture-card
-      // listType:'picture-card',
-      //用于控制文件上传的业务路径,默认temp
-      // bizPath:'temp',
-      //是否禁用
-      disabled: false,
-      //最大上传数量
-      fileMax: 1,
     },
   },
 
@@ -331,6 +318,7 @@ export const formSchema: FormSchema[] = [
     field: 'official',
     label: '设备责任人',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 30,
@@ -342,6 +330,7 @@ export const formSchema: FormSchema[] = [
     label: '设备使用人',
     component: 'Input',
     required: true,
+    colProps: { span: 12 },
     componentProps: {
       maxlength: 30,
       placeholder: '请输入设备使用人',
@@ -352,6 +341,7 @@ export const formSchema: FormSchema[] = [
     label: '设备位置',
     component: 'TreeSelect',
     required: false,
+    colProps: { span: 12 },
     componentProps: {
       treeData: [],
       placeholder: '请选择设备位置',
@@ -390,6 +380,7 @@ export const formSchema: FormSchema[] = [
     field: 'sysOrgCode',
     label: '所属部门',
     component: 'JSelectDept',
+    colProps: { span: 12 },
     componentProps: {
       showButton: false,
       style: {
@@ -403,6 +394,7 @@ export const formSchema: FormSchema[] = [
     field: 'cadCode',
     label: 'CAD 编码',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 60,
@@ -413,6 +405,7 @@ export const formSchema: FormSchema[] = [
     field: 'deviceStatus',
     label: '设备状态',
     component: 'RadioGroup',
+    colProps: { span: 12 },
     required: true,
     defaultValue: 1,
     componentProps: {
@@ -435,6 +428,7 @@ export const formSchema: FormSchema[] = [
     field: 'purchaseDate',
     label: '购置日期',
     component: 'DatePicker',
+    colProps: { span: 12 },
     componentProps: {
       showTime: false,
       valueFormat: 'YYYY-MM-DD',
@@ -445,6 +439,7 @@ export const formSchema: FormSchema[] = [
     field: 'serviceLife',
     label: '使用寿命',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     rules: [
       {
@@ -465,7 +460,7 @@ export const formSchema: FormSchema[] = [
     field: 'warranty',
     label: '保修期',
     component: 'Input',
-    colProps: { span: 24 },
+    colProps: { span: 12 },
     componentProps: {
       addonAfter: '月',
       style: { width: '100%' },
@@ -485,6 +480,7 @@ export const formSchema: FormSchema[] = [
     field: 'cycle',
     label: '巡检点检周期',
     component: 'InputNumber',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       min: 0,
@@ -502,12 +498,31 @@ export const formSchema: FormSchema[] = [
   //   componentProps: {
   //   },
   // },
-
+  {
+    field: 'devicePic',
+    label: '设备图片',
+    required: false,
+    colProps: { span: 12 },
+    component: 'JImageUpload',
+    componentProps: {
+      //按钮显示文字
+      text: '上传图片',
+      //支持两种基本样式picture和picture-card
+      // listType:'picture-card',
+      //用于控制文件上传的业务路径,默认temp
+      // bizPath:'temp',
+      //是否禁用
+      disabled: false,
+      //最大上传数量
+      fileMax: 1,
+    },
+  },
   {
     field: 'remark',
     label: '备注',
     component: 'InputTextArea',
     required: false,
+    colProps: { span: 12 },
     componentProps: {
       maxlength: 200,
       placeholder: '请输入备注',

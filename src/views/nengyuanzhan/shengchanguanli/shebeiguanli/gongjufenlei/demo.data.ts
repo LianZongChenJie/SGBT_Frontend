@@ -82,6 +82,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceTypeName',
     label: '分类名称',
+    colProps: { span: 12 },
+
     component: 'Input',
     required: true,
     componentProps: {
@@ -93,6 +95,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceTypeCode',
     label: '分类编码',
+    colProps: { span: 12 },
+
     component: 'Input',
     required: true,
     componentProps: {
@@ -104,6 +108,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'parentId',
     label: '上一级分类',
+    colProps: { span: 12 },
+
     component: 'TreeSelect',
     componentProps: {
       treeData: [],
@@ -120,6 +126,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'remark',
     label: '备注',
+    colProps: { span: 12 },
+
     component: 'InputTextArea',
     componentProps: {
       placeholder: '请输入备注',

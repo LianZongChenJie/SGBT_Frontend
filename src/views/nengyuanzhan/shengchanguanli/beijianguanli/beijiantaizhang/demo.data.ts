@@ -132,6 +132,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceName',
     label: '备件名称',
+    colProps: { span: 12 },
+
     component: 'Input',
     required: true,
     componentProps: {
@@ -142,6 +144,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceTypeId',
     label: '备件类型',
+    colProps: { span: 12 },
+
     component: 'TreeSelect',
     required: true,
     componentProps: {
@@ -158,6 +162,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceModule',
     label: '备件型号',
+    colProps: { span: 12 },
+
     component: 'Input',
     required: true,
     componentProps: {
@@ -168,6 +174,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'factory',
     label: '备件厂家',
+    colProps: { span: 12 },
+
     component: 'Input',
     componentProps: {
       maxlength: 60,
@@ -177,6 +185,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'supplier',
     label: '供应商',
+    colProps: { span: 12 },
+
     component: 'Input',
     componentProps: {
       maxlength: 60,
@@ -186,6 +196,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'unit',
     label: '单位',
+    colProps: { span: 12 },
+
     component: 'Input',
     required: true,
     componentProps: {
@@ -196,6 +208,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'devicePic',
     label: '备件图片',
+    colProps: { span: 12 },
+
     component: 'JImageUpload',
     componentProps: {
       text: '上传图片',
@@ -206,6 +220,8 @@ export const formSchema: FormSchema[] = [
   {
     field: 'remark',
     label: '备注',
+    colProps: { span: 12 },
+
     component: 'InputTextArea',
     componentProps: {
       maxlength: 200,

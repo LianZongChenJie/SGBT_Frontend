@@ -5,7 +5,7 @@
         <gas />
       </a-tab-pane>
       <a-tab-pane key="2" tab="氢气">
-        <hydrogen‌ />
+        <Hydrogen />
       </a-tab-pane>
       <a-tab-pane key="3" tab="二楼电表">
         <eldb />
@@ -97,7 +97,7 @@
   import WaterSupplyAndDrainage from './components/WaterSupplyAndDrainage.vue';
   import lengyuan from './components/lengyuan.vue';
   import gas from './components/gas.vue';
-  import hydrogen‌ from './components/hydrogen‌.vue';
+  import Hydrogen from './components/hydrogen.vue';
   import bems from './components/bems.vue';
   import bfxtscl from './components/bfxtscl.vue';
   import cqhq from './components/cqhq.vue';

@@ -2,6 +2,15 @@ import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Form';
 // import {render} from '/@/utils/common/renderUtils';
 import { getTreeListZiliaokeshi, getTreeListZiliaomulu } from './demo.api';
+
+function buildSafeUploadFile(file: File) {
+  const extMatch = file.name.match(/\.([A-Za-z0-9]+)$/);
+  const ext = extMatch ? `.${extMatch[1]}` : '';
+  return new File([file], `material_${Date.now()}${ext}`, {
+    type: file.type,
+    lastModified: file.lastModified,
+  });
+}
 export const columns: BasicColumn[] = [
   // {
   //   title: '序号',
@@ -141,6 +150,7 @@ export const formSchema: FormSchema[] = [
       maxCount: 1,
       //是否显示下载按钮
       download: true,
+      beforeUpload: buildSafeUploadFile,
     },
   },
   {

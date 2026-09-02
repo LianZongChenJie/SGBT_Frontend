@@ -185,6 +185,7 @@
     openModal(true, {
       isUpdate: false,
       selectedIds: newArr.value.map((item) => item.id),
+      selectedMaterials: newArr.value,
     });
   }
 
@@ -244,15 +245,15 @@
   }
 
   function changeLists(arr: Recordable[]) {
-    const mergedMap = new Map<string | number, Recordable>();
-    [...newArr.value, ...arr].forEach((item) => {
+    const selectedMap = new Map<string | number, Recordable>();
+    arr.forEach((item) => {
       const key = item.id ?? item.materialId;
       if (key == null) {
         return;
       }
-      mergedMap.set(key, { ...item, id: key });
+      selectedMap.set(key, { ...item, id: key });
     });
-    newArr.value = Array.from(mergedMap.values()).map((item, index) => ({
+    newArr.value = Array.from(selectedMap.values()).map((item, index) => ({
       ...item,
       sortOrder: index + 1,
     }));

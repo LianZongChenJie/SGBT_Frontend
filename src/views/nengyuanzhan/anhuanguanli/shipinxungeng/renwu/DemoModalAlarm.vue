@@ -8,9 +8,7 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { formSchema } from './demo.data';
-  import { getQueryByCode, saveSubmitAlarm } from './demo.api';
-  import { defHttp } from '/@/utils/http/axios';
-  import { uploadUrl } from '/@/api/common/api';
+  import { getQueryByCode, saveSubmitAlarm, uploadAlarmImage } from './demo.api';
   // 声明Emits
   const emit = defineEmits(['register', 'success']);
   const isUpdate = ref(true);
@@ -67,17 +65,7 @@
 
   async function uploadScreenshotBeforeSubmit(dataUrl: string) {
     const file = dataUrlToFile(dataUrl);
-    const response: any = await defHttp.uploadFile(
-      { url: uploadUrl },
-      { file, filename: file.name, data: { biz: 'temp' } },
-      { isReturnResponse: true }
-    );
-    const payload = response?.data || response;
-    const imageUrl = payload?.result || payload?.url || payload?.message || '';
-    if (payload?.success === false || !imageUrl) {
-      throw new Error(payload?.message || '告警截图上传失败');
-    }
-    return String(imageUrl);
+    return uploadAlarmImage(file);
   }
 
   //表单提交事件

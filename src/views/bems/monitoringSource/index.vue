@@ -1,7 +1,55 @@
 <template>
   <div class="monitoring-source-main-box">
     <a-tabs v-model:activeKey="activeKey" centered class="full-height-tabs" :destroyInactiveTabPane="true">
-      <a-tab-pane key="1" tab="冷源监控与分析">
+      <a-tab-pane key="1" tab="燃气">
+        <gas />
+      </a-tab-pane>
+      <a-tab-pane key="2" tab="氢气">
+        <hydrogen‌ />
+      </a-tab-pane>
+      <a-tab-pane key="3" tab="二楼电表">
+        <eldb />
+      </a-tab-pane>
+      <a-tab-pane key="4" tab="雨水处理器">
+        <ysclq />
+      </a-tab-pane>
+      <a-tab-pane key="5" tab="1#锅炉">
+        <gl1 />
+      </a-tab-pane>
+      <a-tab-pane key="6" tab="2#锅炉">
+        <gl2 />
+      </a-tab-pane>
+      <a-tab-pane key="7" tab="3#锅炉">
+        <gl3 />
+      </a-tab-pane>
+      <a-tab-pane key="8" tab="锅炉辅机">
+        <glfj />
+      </a-tab-pane>
+      <a-tab-pane key="9" tab="北方稀土水处理">
+        <bfxtscl />
+      </a-tab-pane>
+      <a-tab-pane key="10" tab="零氮">
+        <ld />
+      </a-tab-pane>
+      <a-tab-pane key="11" tab="掺氢-混气">
+        <cqhq />
+      </a-tab-pane>
+      <a-tab-pane key="12" tab="掺氢氢气减压撬">
+        <cqqqjyq />
+      </a-tab-pane>
+      <a-tab-pane key="13" tab="光伏">
+        <gf />
+      </a-tab-pane>
+      <a-tab-pane key="14" tab="光热系统主机">
+        <grxtzj />
+      </a-tab-pane>
+      <a-tab-pane key="15" tab="bems">
+        <bems />
+      </a-tab-pane>
+      <a-tab-pane key="16" tab="能源站">
+        <nyz />
+      </a-tab-pane>
+      <!--<a-tab-pane key="11" tab="冷源监控与分析">
         <lengyuan />
       </a-tab-pane>
       <a-tab-pane key="2" tab="空调机组">
@@ -24,7 +72,7 @@
       </a-tab-pane>
       <a-tab-pane key="8" tab="风机盘管">
         <listComponents :categoryId="'10'" />
-      </a-tab-pane>
+      </a-tab-pane>-->
 
       <!-- <a-tab-pane key="2" tab="环境监控与分析">
         <EnvironmentalMonitoring />
@@ -48,6 +96,22 @@
   // import EnvironmentalMonitoring from './components/EnvironmentalMonitoring.vue'
   import WaterSupplyAndDrainage from './components/WaterSupplyAndDrainage.vue';
   import lengyuan from './components/lengyuan.vue';
+  import gas from './components/gas.vue';
+  import hydrogen‌ from './components/hydrogen‌.vue';
+  import bems from './components/bems.vue';
+  import bfxtscl from './components/bfxtscl.vue';
+  import cqhq from './components/cqhq.vue';
+  import cqqqjyq from './components/cqqqjyq.vue';
+  import eldb from './components/eldb.vue';
+  import gf from './components/gf.vue';
+  import gl1 from './components/gl1.vue';
+  import gl2 from './components/gl2.vue';
+  import gl3 from './components/gl3.vue';
+  import glfj from './components/glfj.vue';
+  import grxtzj from './components/grxtzj.vue';
+  import ld from './components/ld.vue';
+  import nyz from './components/nyz.vue';
+  import ysclq from './components/ysclq.vue';
   import MyTopoComponents from './components/MyTopoComponents.vue';
   import listComponents from './components/listComponents.vue';
   import { ref } from 'vue';

@@ -69,11 +69,6 @@
       customRender: ({ index }) => index + 1, // 显示序号，从 1 开始
     },
     {
-      title: 'ID',
-      dataIndex: 'pid',
-      key: 'pid',
-    },
-    {
       title: '长名',
       dataIndex: 'name',
       key: 'name',

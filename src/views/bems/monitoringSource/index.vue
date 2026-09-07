@@ -43,7 +43,7 @@
       <a-tab-pane key="14" tab="光热系统主机">
         <grxtzj />
       </a-tab-pane>
-      <a-tab-pane key="15" tab="bems">
+      <a-tab-pane key="15" tab="cems">
         <bems />
       </a-tab-pane>
       <a-tab-pane key="16" tab="能源站">

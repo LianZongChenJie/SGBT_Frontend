@@ -82,6 +82,10 @@
     columns,
     formConfig: {
       schemas: searchFormSchema,
+      actionColOptions: {
+        style: { textAlign: 'left' },
+      },
+      resetFunc: resetTreeFilter,
     },
     striped: true,
     useSearchForm: true,
@@ -93,7 +97,8 @@
       fixed: 'left',
     },
     tableSetting: { fullScreen: true },
-    canResize: false,
+    canResize: true,
+    resizeHeightOffset: 120,
     rowKey: 'id',
     actionColumn: {
       width: 120,
@@ -208,6 +213,12 @@
     checkedKeys.value = [];
     currentParentId.value = data?.id ?? data?.dataRef?.id ?? '';
     reload({ page: 1 });
+  }
+
+  function resetTreeFilter() {
+    checkedKeys.value = [];
+    currentParentId.value = '';
+    leftTree.value?.clearSelectedNode();
   }
 
   function handleAddSuccess() {

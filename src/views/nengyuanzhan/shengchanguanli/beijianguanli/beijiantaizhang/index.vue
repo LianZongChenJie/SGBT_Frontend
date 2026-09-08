@@ -1,7 +1,7 @@
 <template>
   <a-row :class="['p-4', `${prefixCls}--box`, 'spare-ledger-page']" :gutter="10" type="flex">
     <a-col :xl="4" :lg="24" :md="24" class="ledger-tree-col">
-      <DepartLeftTree @select="onTreeSelect" />
+      <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
     </a-col>
     <a-col :xl="20" :lg="24" :md="24" class="ledger-table-col">
       <div class="address-book">
@@ -51,6 +51,7 @@
   const { prefixCls } = useDesign('address-list');
 
   const isDisabled = ref(false);
+  const leftTree = ref();
   const currentDeviceTypeId = ref<string | number | ''>('');
   const checkedKeys = ref<Array<string | number>>([]);
   const [registerModal, { openModal }] = useModal();
@@ -60,6 +61,10 @@
     columns,
     formConfig: {
       schemas: searchFormSchema,
+      actionColOptions: {
+        style: { textAlign: 'left' },
+      },
+      resetFunc: resetTreeFilter,
     },
     striped: true,
     useSearchForm: true,
@@ -71,7 +76,8 @@
       fixed: 'left',
     },
     tableSetting: { fullScreen: true },
-    canResize: false,
+    canResize: true,
+    resizeHeightOffset: 120,
     rowKey: 'id',
     actionColumn: {
       width: 120,
@@ -174,6 +180,12 @@
     checkedKeys.value = [];
     currentDeviceTypeId.value = data?.id ?? data?.dataRef?.id ?? '';
     reload({ page: 1 });
+  }
+
+  function resetTreeFilter() {
+    checkedKeys.value = [];
+    currentDeviceTypeId.value = '';
+    leftTree.value?.clearSelectedNode();
   }
 
   function handleAddSuccess() {

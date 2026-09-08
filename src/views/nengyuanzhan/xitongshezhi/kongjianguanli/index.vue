@@ -16,9 +16,9 @@
             <a-descriptions-item label="创建时间">{{ currentSpace.createTime || '-' }}</a-descriptions-item>
             <a-descriptions-item label="更新时间">{{ currentSpace.updateTime || '-' }}</a-descriptions-item>
           </a-descriptions>
-          <div class="mt3">
-            <img :src="imgUrl" alt="空间示意图" style="width: 100%; height: 300px" />
-          </div>
+<!--          <div class="mt3">-->
+<!--            <img :src="imgUrl" alt="空间示意图" style="width: 100%; height: 300px" />-->
+<!--          </div>-->
         </div>
         <div v-else style="padding-top: 40px">
           <a-empty description="尚未选择空间" />

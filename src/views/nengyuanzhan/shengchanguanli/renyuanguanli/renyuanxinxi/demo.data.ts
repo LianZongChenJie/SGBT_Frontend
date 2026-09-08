@@ -86,7 +86,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'employeeName',
     label: '人员姓名',
     component: 'Input',
-    colProps: { span: 10 },
+    colProps: { span: 8 },
     componentProps: {
       placeholder: '请输入人员姓名',
     },
@@ -95,7 +95,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'employeeCode',
     label: '人员编码',
     component: 'Input',
-    colProps: { span: 10 },
+    colProps: { span: 8 },
     componentProps: {
       placeholder: '请输入人员编码',
     },
@@ -104,7 +104,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'employeeType',
     label: '人员类型',
     component: 'JDictSelectTag',
-    colProps: { span: 10 },
+    colProps: { span: 8 },
     componentProps: {
       dictCode: 'employeeType',
     },
@@ -113,7 +113,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'company',
     label: '单位',
     component: 'Input',
-    colProps: { span: 10 },
+    colProps: { span: 8 },
     componentProps: {
       placeholder: '请输入单位',
     },

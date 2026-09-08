@@ -40,6 +40,10 @@
     columns,
     formConfig: {
       schemas: searchFormSchema,
+      autoAdvancedCol: 2,
+      actionColOptions: {
+        style: { textAlign: 'left' },
+      },
     },
     beforeFetch(params) {
       return {

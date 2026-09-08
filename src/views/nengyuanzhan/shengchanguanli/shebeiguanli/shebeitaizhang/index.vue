@@ -101,6 +101,10 @@
     formConfig: {
       //labelWidth: 120,
       schemas: searchFormSchema,
+      actionColOptions: {
+        style: { textAlign: 'left' },
+      },
+      resetFunc: resetTreeFilter,
     },
     //自定义默认排序
     // defSort: {
@@ -117,7 +121,8 @@
       fixed: 'left',
     },
     tableSetting: { fullScreen: true },
-    canResize: false,
+    canResize: true,
+    resizeHeightOffset: 120,
     rowKey: 'id',
     actionColumn: {
       width: 120,
@@ -286,6 +291,13 @@
     }
     deviceTypeId.value = data.id;
     reload();
+  }
+
+  function resetTreeFilter() {
+    checkedKeys.value = [];
+    checkedRows.value = [];
+    deviceTypeId.value = '';
+    leftTree.value?.clearSelectedNode();
   }
 
   function handleAddSuccess() {

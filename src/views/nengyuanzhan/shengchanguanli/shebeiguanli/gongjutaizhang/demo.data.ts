@@ -178,6 +178,7 @@ export const formSchema: FormSchema[] = [
     field: 'deviceName',
     label: '工具名称',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 80,
@@ -188,6 +189,7 @@ export const formSchema: FormSchema[] = [
     field: 'deviceTypeId',
     label: '工具类型',
     component: 'TreeSelect',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       treeData: [],
@@ -204,6 +206,7 @@ export const formSchema: FormSchema[] = [
     field: 'invQty',
     label: '库存数量',
     component: 'InputNumber',
+    colProps: { span: 12 },
     componentProps: {
       min: 0,
       precision: 0,
@@ -214,6 +217,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceModule',
     label: '工具型号',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: {
@@ -224,6 +228,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'factory',
     label: '品牌',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: {
@@ -235,6 +240,7 @@ export const formSchema: FormSchema[] = [
     field: 'supplier',
     label: '供应商',
     component: 'Input',
+    colProps: { span: 12 },
     required: true,
     componentProps: {
       maxlength: 60,
@@ -242,18 +248,9 @@ export const formSchema: FormSchema[] = [
     },
   },
   {
-    field: 'devicePic',
-    label: '工具图片',
-    component: 'JImageUpload',
-    componentProps: {
-      text: '上传图片',
-      disabled: false,
-      fileMax: 1,
-    },
-  },
-  {
     field: 'official',
     label: '工具责任人',
+    colProps: { span: 12 },
     component: 'TreeSelect',
     componentProps: {
       allowClear: true,
@@ -269,6 +266,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'user',
     label: '工具使用人',
+    colProps: { span: 12 },
     component: 'TreeSelect',
     componentProps: {
       allowClear: true,
@@ -284,6 +282,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'spaceId',
     label: '所属库房',
+    colProps: { span: 12 },
     component: 'TreeSelect',
     componentProps: {
       treeData: [],
@@ -299,6 +298,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'sysOrgCode',
     label: '所属部门',
+    colProps: { span: 12 },
     component: 'JSelectDept',
     componentProps: {
       showButton: false,
@@ -312,6 +312,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'cadCode',
     label: 'CAD 编码',
+    colProps: { span: 12 },
     component: 'Input',
     required: true,
     componentProps: {
@@ -322,6 +323,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'deviceStatus',
     label: '使用状态',
+    colProps: { span: 12 },
     component: 'RadioGroup',
     required: true,
     defaultValue: 1,
@@ -337,6 +339,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'purchaseDate',
     label: '购置日期',
+    colProps: { span: 12 },
     component: 'DatePicker',
     componentProps: {
       showTime: false,
@@ -347,6 +350,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'serviceLife',
     label: '使用寿命(月)',
+    colProps: { span: 12 },
     component: 'InputNumber',
     componentProps: {
       min: 0,
@@ -358,6 +362,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'warranty',
     label: '保修期(月)',
+    colProps: { span: 12 },
     component: 'InputNumber',
     componentProps: {
       min: 0,
@@ -369,6 +374,7 @@ export const formSchema: FormSchema[] = [
   {
     field: 'cycle',
     label: '巡检点检周期(月)',
+    colProps: { span: 12 },
     component: 'InputNumber',
     componentProps: {
       min: 0,
@@ -381,6 +387,7 @@ export const formSchema: FormSchema[] = [
     field: 'lo',
     label: '工具经度',
     component: 'Input',
+    colProps: { span: 12 },
     componentProps: {
       maxlength: 50,
       placeholder: '请输入工具经度',
@@ -390,14 +397,27 @@ export const formSchema: FormSchema[] = [
     field: 'la',
     label: '工具纬度',
     component: 'Input',
+    colProps: { span: 12 },
     componentProps: {
       maxlength: 50,
       placeholder: '请输入工具纬度',
     },
   },
   {
+    field: 'devicePic',
+    label: '工具图片',
+    colProps: { span: 12   },
+    component: 'JImageUpload',
+    componentProps: {
+      text: '上传图片',
+      disabled: false,
+      fileMax: 1,
+    },
+  },
+  {
     field: 'remark',
     label: '备注',
+    colProps: { span: 12 },
     component: 'InputTextArea',
     componentProps: {
       maxlength: 200,

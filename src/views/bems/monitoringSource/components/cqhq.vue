@@ -35,7 +35,7 @@
   import { h } from 'vue';
   import { usePermissionStore } from '/@/store/modules/permission';
   import LinkageControlStrategyList from '../../standardizedManagement/components/LinkageControlStrategyList.vue';
-  import { queryGasData, queryHydrogenData} from './Api.ts';
+  import { queryCqhqData} from './Api.js';
   // import { getLinkageControlListApi} from '../../standardizedManagement/Standardized.api';
   import { message } from 'ant-design-vue';
 
@@ -116,13 +116,13 @@
   ];
 
   // 获取表格数据
-  const getGasDataList = async (pageParams) => {
+  const getCqhqDataList = async (pageParams) => {
     let params = {
       pageNo: 1,
       pageSize: 1000,
     };
     console.log(1);
-    let res = await queryGasData(params);
+    let res = await queryCqhqData(params);
     console.log(res);
     return {
       records: res.values, // 当前页数据
@@ -134,7 +134,7 @@
     designScope: 'basic-table-demo',
     tableProps: {
       // dataSource: dataSource.value,
-      api: getGasDataList,
+      api: getCqhqDataList,
       columns: columns,
       showTableSetting: false,
       showActionColumn: false,

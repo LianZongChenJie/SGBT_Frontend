@@ -1,6 +1,6 @@
 <template>
-  <BasicModal :title="title" v-bind="$attrs" width="40%" @ok="handleSubmit" @register="registerModal">
-    <BasicForm :disabled="isDisabled" @register="registerForm" />
+  <BasicModal :title="title" v-bind="$attrs" width="70%" @ok="handleSubmit" @register="registerModal">
+    <BasicForm class="device-ledger-form" :disabled="isDisabled" @register="registerForm" />
   </BasicModal>
 </template>
 <script lang="ts" setup>
@@ -27,6 +27,7 @@
   //表单配置
   const [registerForm, { resetFields, setFieldsValue, validate, updateSchema }] = useForm({
     schemas: formSchema,
+    labelWidth: 136,
     showActionButtonGroup: false,
   });
 
@@ -82,3 +83,22 @@
     }
   }
 </script>
+
+<style lang="less" scoped>
+  :deep(.device-ledger-form) {
+    overflow-x: hidden;
+  }
+
+  :deep(.device-ledger-form .ant-form-item-label) {
+    flex: 0 0 136px;
+    width: 136px !important;
+    max-width: 136px;
+    text-align: left !important;
+  }
+
+  :deep(.device-ledger-form .ant-form-item-label > label) {
+    justify-content: flex-start;
+    width: 100%;
+    white-space: nowrap;
+  }
+</style>

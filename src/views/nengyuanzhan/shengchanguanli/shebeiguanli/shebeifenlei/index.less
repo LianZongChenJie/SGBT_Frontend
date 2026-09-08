@@ -6,8 +6,71 @@
   background-color: @component-background;
   // update-end-author:liusq date:20230625 for: [issues/563]暗色主题部分失效
   &--box {
+    height: calc(100vh - 120px);
+    min-height: 0;
+    overflow: hidden;
+
     .ant-tabs-nav {
       padding: 0 20px;
+    }
+
+    .ledger-tree-col,
+    .ledger-table-col {
+      height: 100%;
+      min-height: 0;
+      margin-bottom: 0;
+    }
+
+    .ledger-tree-col .ant-card,
+    .address-book {
+      height: 100%;
+      min-height: 0;
+    }
+
+    .address-book {
+      display: flex;
+      flex-direction: column;
+      background-color: @component-background;
+    }
+
+    .address-book .@{namespace}-basic-table {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .address-book .@{namespace}-basic-table > .ant-form-item-rest {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .address-book .@{namespace}-basic-table > .ant-form-item-rest > .ant-form-item {
+      flex: 1;
+      min-height: 0;
+      margin-bottom: 0;
+    }
+
+    .address-book .@{namespace}-basic-table .ant-table-wrapper {
+      height: 100%;
+      min-height: 0;
+    }
+
+    .ledger-tree-col .ant-card-body {
+      height: 100%;
+      overflow: auto;
+    }
+
+    .ledger-tree-col .ant-tree {
+      min-width: max-content;
+    }
+
+    .ledger-tree-col .ant-tree-node-content-wrapper,
+    .ledger-tree-col .ant-tree-title {
+      white-space: nowrap;
     }
   }
 }

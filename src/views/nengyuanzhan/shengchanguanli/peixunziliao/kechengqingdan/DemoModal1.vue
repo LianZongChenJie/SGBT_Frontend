@@ -35,8 +35,8 @@
   //表单赋值
   const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
     setModalProps({ confirmLoading: false, showOkBtn: !props.isDisabled });
-    checkedKeys.value = (data?.selectedIds || []).map((item) => String(item));
-    checkedArr.value = [];
+    checkedKeys.value = normalizeKeys(data?.selectedIds || []);
+    checkedArr.value = (data?.selectedMaterials || []).map(normalizeMaterialRow);
   });
 
   const [registerTable] = useTable({
@@ -66,7 +66,7 @@
     },
     tableSetting: { fullScreen: true },
     canResize: false,
-    rowKey: 'id',
+    rowKey: (record) => getMaterialKey(record),
   });
   /**
    * 选择列配置
@@ -78,12 +78,32 @@
     onChange: onSelectChange,
   };
 
+  function getMaterialKey(record: Recordable) {
+    return String(record?.id ?? record?.materialId ?? '');
+  }
+
+  function normalizeKeys(keys: Array<string | number>) {
+    return keys.filter((item) => item !== null && item !== undefined && item !== '').map((item) => String(item));
+  }
+
+  function normalizeMaterialRow(record: Recordable) {
+    const key = getMaterialKey(record);
+    return {
+      ...record,
+      id: key,
+    };
+  }
+
   /**
    * 选择事件
    */
   function onSelectChange(selectedRowKeys: (string | number)[], checkedLists: Recordable[]) {
-    checkedKeys.value = selectedRowKeys.map((item) => String(item));
-    checkedArr.value = checkedLists;
+    const nextKeys = normalizeKeys(selectedRowKeys);
+    const currentPageMap = new Map(checkedLists.map((item) => [getMaterialKey(item), normalizeMaterialRow(item)]));
+    checkedKeys.value = nextKeys;
+    checkedArr.value = nextKeys
+      .map((key) => currentPageMap.get(key) || checkedArr.value.find((item) => getMaterialKey(item) === key))
+      .filter(Boolean) as Recordable[];
   }
 
   //设置标题

@@ -1,5 +1,10 @@
 import { defHttp } from '/@/utils/http/axios';
 import { Modal } from 'ant-design-vue';
+import { useGlobSetting } from '/@/hooks/setting';
+
+const globSetting = useGlobSetting();
+const baseUploadUrl = globSetting.uploadUrl;
+const prefix = import.meta.env.VITE_GLOB_API_URL_PREFIX;
 
 enum Api {
   list = '/operation/videoPatrolTask/list',
@@ -49,6 +54,28 @@ export interface PatrolStateResponse {
   cameraName?: string;
   nextSwitchAt?: number;
   message?: string;
+}
+
+export const alarmImageUploadUrl = `${baseUploadUrl}${prefix}/sys/common/upload`;
+
+export async function uploadAlarmImage(file: File) {
+  const response: any = await defHttp.uploadFile(
+    { url: alarmImageUploadUrl },
+    {
+      file,
+      filename: file.name,
+      data: {
+        biz: 'temp',
+      },
+    },
+    { isReturnResponse: true }
+  );
+  const payload = response?.data || response;
+  const imageUrl = payload?.message || payload?.result || payload?.url || '';
+  if (payload?.success === false || !imageUrl) {
+    throw new Error(payload?.message || '图片上传失败');
+  }
+  return String(imageUrl);
 }
 
 function patrolUrl(template: string, patrolId: string) {

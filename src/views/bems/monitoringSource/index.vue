@@ -1,235 +1,263 @@
 <template>
   <div class="monitoring-source-main-box">
-    <a-tabs v-model:activeKey="activeKey" centered class="full-height-tabs" :destroyInactiveTabPane="true">
-      <a-tab-pane key="1" tab="燃气">
-        <gas />
-      </a-tab-pane>
-      <a-tab-pane key="10" tab="氢气">
-        <hydrogen‌ />
-      </a-tab-pane>
-      <a-tab-pane key="11" tab="冷源监控与分析">
-        <lengyuan />
-      </a-tab-pane>
-      <a-tab-pane key="2" tab="空调机组">
-        <MyTopoComponents :path="'kongTiao.json'" :categoryId="'16'" :deviceList="kongTiaoDeviceList" />
-      </a-tab-pane>
-      <a-tab-pane key="3" tab="排风机">
-        <listComponents :categoryId="'6'" />
-      </a-tab-pane>
-      <a-tab-pane key="4" tab="集水坑">
-        <listComponents :categoryId="'8'" />
-      </a-tab-pane>
-      <a-tab-pane key="5" tab="热风幕">
-        <listComponents :categoryId="'7'" />
-      </a-tab-pane>
-      <a-tab-pane key="6" tab="热风幕">
-        <listComponents :categoryId="'7'" />
-      </a-tab-pane>
-      <a-tab-pane key="7" tab="空气质量">
-        <listComponents :categoryId="'9'" />
-      </a-tab-pane>
-      <a-tab-pane key="8" tab="风机盘管">
-        <listComponents :categoryId="'10'" />
-      </a-tab-pane>
+    <div class="tabs-container">
+      <div class="level-one-tabs">
+        <template v-for="category in categoryData" :key="category.key">
+          <!-- 一级分类 -->
+          <div
+            class="level-one-tab"
+            :class="{ active: activeCategory === category.key }"
+            @click="handleCategoryClick(category)"
+          >
+            <span class="tab-label">{{ category.value }}</span>
+            <span v-if="category.children && category.children.length" class="arrow-icon">›</span>
+          </div>
 
-      <!-- <a-tab-pane key="2" tab="环境监控与分析">
-        <EnvironmentalMonitoring />
-      </a-tab-pane>
-      <a-tab-pane key="3" tab="变配电运行监控">
-        <substationAndDistribution />
-      </a-tab-pane>
-      <a-tab-pane key="4" tab="照明监控">
-        模式化
-      </a-tab-pane>
-      <a-tab-pane key="5" tab="给排水">
-        <WaterSupplyAndDrainage />
-      </a-tab-pane> -->
-    </a-tabs>
+          <!-- 二级分类 -->
+          <div
+            v-if="category.children && category.children.length && expandedCategory === category.key"
+            class="level-two-tabs"
+            :class="{ 'animate-expand': true }"
+          >
+              <div
+                v-for="child in category.children"
+                :key="child.key"
+                class="level-two-tab"
+                :class="{ active: activeChild === child.key }"
+                @click="handleChildClick(child, category.key)"
+              >
+              <span class="child-label">{{ child.value }}</span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- 组件展示区域 -->
+    <div class="component-container">
+      <component :is="currentComponent" v-if="currentComponent" />
+      <div v-else class="empty-state">请选择一个分类查看详情</div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import SubstationAndDistribution from './components/SubstationAndDistribution.vue';
-  import ColdSourceMonitoring from './components/ColdSourceMonitoring.vue';
-  // import EnvironmentalMonitoring from './components/EnvironmentalMonitoring.vue'
-  import WaterSupplyAndDrainage from './components/WaterSupplyAndDrainage.vue';
-  import lengyuan from './components/lengyuan.vue';
+  import { ref, computed } from 'vue';
   import gas from './components/gas.vue';
-  import hydrogen‌ from './components/hydrogen‌.vue';
-  import MyTopoComponents from './components/MyTopoComponents.vue';
-  import listComponents from './components/listComponents.vue';
-  import { ref } from 'vue';
+  import hydrogen from './components/hydrogen.vue';
+  import gl1 from './components/gl1.vue';
+  import gl2 from './components/gl2.vue';
+  import gl3 from './components/gl3.vue';
+  import glfj from './components/glfj.vue';
+  import cqhq from './components/cqhq.vue';
+  import cqqqjyq from './components/cqqqjyq.vue';
+  import bfxtscl from './components/bfxtscl.vue';
+  import ysclq from './components/ysclq.vue';
+  import eldb from './components/eldb.vue';
+  import gf from './components/gf.vue';
+  import grxtzj from './components/grxtzj.vue';
+  import ld from './components/ld.vue';
+  import bems from './components/bems.vue';
+  import nyz from './components/nyz.vue';
 
-  const activeKey = ref('1');
-  const kongTiaoDeviceList = [
-    {
-      name: '操作模式',
-      attributeCode: 'MODE',
-    },
-    {
-      name: '系统启停',
-      attributeCode: 'SYSENA',
-    },
-    {
-      name: '设定温度',
-      attributeCode: 'TSP',
-    },
-    {
-      name: '季节模式',
-      attributeCode: 'SEASON',
-    },
-    {
-      name: '水阀冬季最小开度',
-      attributeCode: 'VLVMIN',
-    },
-    {
-      name: '防冻状态',
-      attributeCode: 'LOWT',
-    },
-    {
-      name: '送风温度',
-      attributeCode: 'SAT',
-    },
-    {
-      name: '新风阀反馈',
-      attributeCode: 'OADS',
-    },
-    {
-      name: '新风阀开关',
-      attributeCode: 'OADC',
-    },
-    {
-      name: '水阀反馈',
-      attributeCode: 'VLVFB',
-    },
-    {
-      name: '水阀调节',
-      attributeCode: 'VLVA',
-    },
-    {
-      name: '送风机运行状态',
-      attributeCode: 'SFS',
-    },
-    {
-      name: '送风机故障状态',
-      attributeCode: 'SFF',
-    },
-    {
-      name: '送风机手自动状态',
-      attributeCode: 'SFAM',
-    },
-    {
-      name: '送风机压差状态',
-      attributeCode: 'SFDP',
-    },
-    {
-      name: '送风机启停',
-      attributeCode: 'SFC',
-    },
-    {
-      name: '回风阀反馈',
-      attributeCode: 'RADS',
-    },
-    {
-      name: '回风阀调节',
-      attributeCode: 'RADC',
-    },
-    {
-      name: '设定湿度',
-      attributeCode: 'HSP',
-    },
-    {
-      name: '回风温度',
-      attributeCode: 'RAT',
-    },
-    {
-      name: '回风湿度',
-      attributeCode: 'RAH',
-    },
-    {
-      name: '送风湿度',
-      attributeCode: 'SAH',
-    },
-    {
-      name: '袋式过滤网',
-      attributeCode: 'FILT',
-    },
-    {
-      name: '静电除尘运行状态',
-      attributeCode: 'JDS',
-    },
-    {
-      name: '静电除尘手自动状态',
-      attributeCode: 'JDAM',
-    },
-    {
-      name: '加湿阀运行状态',
-      attributeCode: 'HUMS',
-    },
-    {
-      name: '加湿阀手自动状态',
-      attributeCode: 'HUMAM',
-    },
-    {
-      name: '排风湿度',
-      attributeCode: 'EAT',
-    },
-    {
-      name: '排风机运行时间',
-      attributeCode: 'EFBT',
-    },
-    {
-      name: '排风机运行状态',
-      attributeCode: 'EFS',
-    },
-    {
-      name: '排风机故障状态',
-      attributeCode: 'EFF',
-    },
-    {
-      name: '排风机手自动状态',
-      attributeCode: 'EFAM',
-    },
-    {
-      name: '排风机压差状态',
-      attributeCode: 'EFDP',
-    },
-    {
-      name: '排风机启停',
-      attributeCode: 'EFC',
-    },
-    {
-      name: '排风机频率设定',
-      attributeCode: 'EFVFDA',
-    },
-    {
-      name: '排风机频率反馈',
-      attributeCode: 'EFVFDFB',
-    },
-    {
-      name: '新风湿度',
-      attributeCode: 'OAT',
-    },
-    {
-      name: '热转轮启停控制',
-      attributeCode: 'RZLC',
-    },
-    {
-      name: '热转轮故障状态',
-      attributeCode: 'RZLF',
-    },
-    {
-      name: '热转轮手自动状态',
-      attributeCode: 'RZLAM',
-    },
-    {
-      name: '中效滤网状态',
-      attributeCode: 'RFILT',
-    },
+  // 组件映射
+  const componentMap: Record<string, any> = {
+    gas,
+    hydrogen,
+    gl1,
+    gl2,
+    gl3,
+    glfj,
+    cqhq,
+    cqqqjyq,
+    bfxtscl,
+    ysclq,
+    eldb,
+    gf,
+    grxtzj,
+    ld,
+    bems,
+    nyz,
+  };
+
+  // 分类数据
+  const categoryData = [
+    { key: 'bjq', value: '报警器', children: [{ key: 'gas', value: '燃气' }, { key: 'hydrogen', value: '氢气' }] },
+    { key: 'glxt', value: '锅炉系统', children: [{ key: 'gl1', value: '1#锅炉' }, { key: 'gl2', value: '2#锅炉' }, { key: 'gl3', value: '3#锅炉' }, { key: 'glfj', value: '锅炉辅机' }] },
+    { key: 'cqxt', value: '掺氢系统', children: [{ key: 'cqhq', value: '掺氢-混气' }, { key: 'cqqqjyq', value: '掺氢-氢气减压撬' }] },
+    { key: 'bfxtscl', value: '水处理系统', children: [{ key: 'bfxtscl', value: '北方稀土水处理' }, { key: 'ysclq', value: '雨水处理器' }] },
+    { key: 'eldb', value: '二楼电表' },
+    { key: 'gf', value: '光伏系统' },
+    { key: 'grxtzj', value: '光热系统' },
+    { key: 'ld', value: '零氮' },
+    { key: 'bems', value: 'cems系统' },
+    { key: 'nyz', value: '能源站' },
   ];
+
+  // 状态管理
+  const activeCategory = ref<string>('');
+  const activeChild = ref<string>('');
+  const expandedCategory = ref<string>('');
+
+  // 当前显示的组件
+  const currentComponent = computed(() => {
+    const key = activeChild.value || activeCategory.value;
+    return componentMap[key] || null;
+  });
+
+  // 点击一级分类
+  const handleCategoryClick = (category: any) => {
+    activeCategory.value = category.key;
+
+    // 如果点击的是已经展开的分类，则收起
+    if (expandedCategory.value === category.key) {
+      expandedCategory.value = '';
+      activeChild.value = '';
+    } else {
+      // 否则展开当前分类，收起其他分类
+      expandedCategory.value = category.key;
+      activeChild.value = '';
+    }
+
+    // 如果没有子分类，直接渲染组件
+    if (!category.children || category.children.length === 0) {
+      expandedCategory.value = '';
+    }
+  };
+
+  // 点击二级分类
+  const handleChildClick = (child: any, parentKey: string) => {
+    activeChild.value = child.key;
+    activeCategory.value = parentKey;
+    // 保持当前分类展开
+    expandedCategory.value = parentKey;
+  };
 </script>
 
 <style scoped lang="less">
   .monitoring-source-main-box {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .tabs-container {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 0;
+  }
+
+  .level-one-tabs {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+  }
+
+  .level-one-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    background: #fff;
+    border-right: 1px solid #e8e8e8;
+    color: #333;
+    font-size: 13px;
+    user-select: none;
+    position: relative;
+
+    &:hover {
+      color: #1890ff;
+    }
+
+    &.active {
+      color: #1890ff;
+      font-weight: 500;
+    }
+
+    .tab-label {
+      flex-shrink: 0;
+    }
+
+    .arrow-icon {
+      font-size: 14px;
+      color: #999;
+      transition: transform 0.2s ease;
+    }
+  }
+
+  .level-two-tabs {
+    display: flex;
+    align-items: center;
+    background: #f7f7f7;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 0;
+    overflow: hidden;
+    max-width: 0;
+    animation: expandWidth 0.3s ease-out forwards;
+  }
+
+  @keyframes expandWidth {
+    from {
+      max-width: 0;
+      opacity: 0;
+    }
+    to {
+      max-width: 1000px;
+      opacity: 1;
+    }
+  }
+
+  .level-two-tab {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    color: #666;
+    font-size: 12px;
+    border-right: 1px solid #e8e8e8;
+    user-select: none;
+
+    &:hover {
+      color: #1890ff;
+    }
+
+    &.active {
+      color: #1890ff;
+      font-weight: 500;
+    }
+
+    .child-label {
+      flex-shrink: 0;
+    }
+  }
+
+  .component-container {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    background: #f0f2f5;
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-size: 16px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 </style>

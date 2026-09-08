@@ -1,5 +1,10 @@
 import { defHttp } from '/@/utils/http/axios';
 import { Modal } from 'ant-design-vue';
+import { useGlobSetting } from '/@/hooks/setting';
+
+const globSetting = useGlobSetting();
+const baseUploadUrl = globSetting.uploadUrl;
+const prefix = import.meta.env.VITE_GLOB_API_URL_PREFIX;
 
 export enum Api {
   listShebei = '/operation/energyDeviceInfo/list',
@@ -41,7 +46,7 @@ export const getCaozuoHistoryExportXls = Api.caozuoHistoryExportXls;
  * 导入api
  */
 export const getImportUrl = Api.importExcel;
-export const getImportUrlFujian = Api.importExcelFujian;
+export const getImportUrlFujian = `${baseUploadUrl}${prefix}/sys/common/upload`;
 /**
  * 查询示例列表
  * @param params

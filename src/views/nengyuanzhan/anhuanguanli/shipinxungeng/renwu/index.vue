@@ -89,10 +89,12 @@
    * @param record
    */
   function getActions(record) {
+    const isCompleted = isTaskCompleted(record);
     return [
       {
         label: '执行巡更任务',
         onClick: handleEdit.bind(null, record),
+        disabled: isCompleted,
         auth: ['operation:videoPatrolTask:startTask'],
       },
       // {
@@ -121,11 +123,19 @@
    * 编辑事件
    */
   function handleEdit(record) {
+    if (isTaskCompleted(record)) {
+      return;
+    }
     isDisabled.value = false;
     openModal(true, {
       record,
       isUpdate: true,
     });
+  }
+
+  function isTaskCompleted(record) {
+    const status = record?.taskStatus;
+    return status === 2 || status === '2' || status === '完成' || status === '已完成';
   }
 </script>
 <style lang="less" scoped>

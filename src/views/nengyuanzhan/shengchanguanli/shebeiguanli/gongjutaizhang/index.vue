@@ -1,10 +1,10 @@
 <template>
-  <a-row :class="['p-4', `${prefixCls}--box`]" :gutter="10" style="max-height: 800px" type="flex">
-    <a-col :lg="24" :md="24" :xl="4" style="margin-bottom: 10px">
+  <a-row :class="['p-4', `${prefixCls}--box`]" :gutter="10" type="flex">
+    <a-col :lg="24" :md="24" :xl="4" class="ledger-tree-col">
       <DepartLeftTree ref="leftTree" @select="onTreeSelect" />
     </a-col>
-    <a-col :lg="24" :md="24" :xl="20" style="margin-bottom: 10px">
-      <div class="address-book" style="height: 100%">
+    <a-col :lg="24" :md="24" :xl="20" class="ledger-table-col">
+      <div class="address-book">
         <BasicTable :rowSelection="rowSelection" style="padding: 0" @register="registerTable">
           <template #tableTitle>
             <a-button v-if="hasPermission('energy:tools:add')" preIcon="ant-design:plus-outlined" type="primary" @click="handleAdd">新增</a-button>

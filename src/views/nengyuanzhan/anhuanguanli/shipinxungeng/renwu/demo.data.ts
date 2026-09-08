@@ -37,7 +37,7 @@ export const columns: BasicColumn[] = [
   // },
   {
     title: '播放时长(秒)',
-    dataIndex: 'duration',
+    dataIndex: 'playtime',
     width: 140,
     resizable: true,
   },

@@ -1,137 +1,152 @@
 <template>
   <div class="monitoring-source-main-box">
-    <div class="tabs-container">
-      <div class="level-one-tabs">
-        <template v-for="category in categoryData" :key="category.key">
-          <!-- 一级分类 -->
-          <div
-            class="level-one-tab"
-            :class="{ active: activeCategory === category.key }"
-            @click="handleCategoryClick(category)"
-          >
-            <span class="tab-label">{{ category.value }}</span>
-            <span v-if="category.children && category.children.length" class="arrow-icon">›</span>
-          </div>
-
-          <!-- 二级分类 -->
-          <div
-            v-if="category.children && category.children.length && expandedCategory === category.key"
-            class="level-two-tabs"
-            :class="{ 'animate-expand': true }"
-          >
-              <div
-                v-for="child in category.children"
-                :key="child.key"
-                class="level-two-tab"
-                :class="{ active: activeChild === child.key }"
-                @click="handleChildClick(child, category.key)"
-              >
-              <span class="child-label">{{ child.value }}</span>
-            </div>
-          </div>
+    <!-- 一级 tab 页签（数据来自 /bems/monitorSource/tree 接口） -->
+    <a-tabs
+      v-if="categoryData.length"
+      v-model:activeKey="activeCategory"
+      centered
+      class="page-tabs"
+      :destroy-inactive-tab-pane="true"
+      @change="handleCategoryChange"
+    >
+      <a-tab-pane v-for="category in categoryData" :key="category.key" :tab="category.value">
+        <!-- 有 children 字段：在第一层 tab 页下面生成二级 tab 页 -->
+        <template v-if="category.children && category.children.length">
+          <a-tabs v-model:activeKey="activeChild" size="small" class="sub-level-tabs">
+            <a-tab-pane v-for="child in category.children" :key="child.key" :tab="child.value">
+              <div class="component-container">
+                <DeviceDataTable v-if="child.deviceId != null" :deviceId="child.deviceId" />
+                <div v-else class="empty-state">该分类暂无组件</div>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
         </template>
-      </div>
-    </div>
-
-    <!-- 组件展示区域 -->
-    <div class="component-container">
-      <component :is="currentComponent" v-if="currentComponent" />
-      <div v-else class="empty-state">请选择一个分类查看详情</div>
+        <!-- 无 children：直接展示该分类组件 -->
+        <div v-else class="component-container">
+          <DeviceDataTable v-if="category.deviceId != null" :deviceId="category.deviceId" />
+          <div v-else class="empty-state">该分类暂无组件</div>
+        </div>
+      </a-tab-pane>
+    </a-tabs>
+    <!-- 加载中 / 无数据提示 -->
+    <div v-else class="empty-page">
+      {{ isLoaded ? '暂无监测源分类数据，请检查 /bems/monitorSource/tree 接口返回' : '监测源数据加载中…' }}
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
-  import gas from './components/gas.vue';
-  import hydrogen from './components/hydrogen.vue';
-  import gl1 from './components/gl1.vue';
-  import gl2 from './components/gl2.vue';
-  import gl3 from './components/gl3.vue';
-  import glfj from './components/glfj.vue';
-  import cqhq from './components/cqhq.vue';
-  import cqqqjyq from './components/cqqqjyq.vue';
-  import bfxtscl from './components/bfxtscl.vue';
-  import ysclq from './components/ysclq.vue';
-  import eldb from './components/eldb.vue';
-  import gf from './components/gf.vue';
-  import grxtzj from './components/grxtzj.vue';
-  import ld from './components/ld.vue';
-  import bems from './components/bems.vue';
-  import nyz from './components/nyz.vue';
+  import { ref, onMounted } from 'vue';
+  import { getMonitorSourceTree } from './index.api';
+  import DeviceDataTable from './components/DeviceDataTable.vue';
 
-  // 组件映射
-  const componentMap: Record<string, any> = {
-    gas,
-    hydrogen,
-    gl1,
-    gl2,
-    gl3,
-    glfj,
-    cqhq,
-    cqqqjyq,
-    bfxtscl,
-    ysclq,
-    eldb,
-    gf,
-    grxtzj,
-    ld,
-    bems,
-    nyz,
-  };
+  interface MonitorTreeNode {
+    key: string;
+    value: string;
+    // 设备节点对应的 deviceId（来自 /bems/monitorSource/tree），点击标签时传给 queryPage 统一查询
+    deviceId?: string | number;
+    children?: MonitorTreeNode[];
+  }
 
-  // 分类数据
-  const categoryData = [
-    { key: 'bjq', value: '报警器', children: [{ key: 'gas', value: '燃气' }, { key: 'hydrogen', value: '氢气' }] },
-    { key: 'glxt', value: '锅炉系统', children: [{ key: 'gl1', value: '1#锅炉' }, { key: 'gl2', value: '2#锅炉' }, { key: 'gl3', value: '3#锅炉' }, { key: 'glfj', value: '锅炉辅机' }] },
-    { key: 'cqxt', value: '掺氢系统', children: [{ key: 'cqhq', value: '掺氢-混气' }, { key: 'cqqqjyq', value: '掺氢-氢气减压撬' }] },
-    { key: 'bfxtscl', value: '水处理系统', children: [{ key: 'bfxtscl', value: '北方稀土水处理' }, { key: 'ysclq', value: '雨水处理器' }] },
-    { key: 'eldb', value: '二楼电表' },
-    { key: 'gf', value: '光伏系统' },
-    { key: 'grxtzj', value: '光热系统' },
-    { key: 'ld', value: '零氮' },
-    { key: 'bems', value: 'cems系统' },
-    { key: 'nyz', value: '能源站' },
-  ];
+  // 页签数据（完全由 /bems/monitorSource/tree 接口返回）
+  const categoryData = ref<MonitorTreeNode[]>([]);
 
-  // 状态管理
+  // 当前选中的一级页签 / 二级页签
   const activeCategory = ref<string>('');
   const activeChild = ref<string>('');
-  const expandedCategory = ref<string>('');
 
-  // 当前显示的组件
-  const currentComponent = computed(() => {
-    const key = activeChild.value || activeCategory.value;
-    return componentMap[key] || null;
+  // 接口是否加载完成（用于区分加载中/无数据）
+  const isLoaded = ref(false);
+
+  // 常见列表包装字段，兼容后端返回 { list/records/data/... } 而非纯数组的情况
+  const LIST_WRAP_FIELDS = ['list', 'records', 'result', 'data', 'tree', 'rows', 'items', 'children'];
+
+  const resolveList = (payload: any): any[] => {
+    if (Array.isArray(payload)) return payload;
+    if (payload && typeof payload === 'object') {
+      for (const field of LIST_WRAP_FIELDS) {
+        if (Array.isArray(payload[field])) return payload[field];
+      }
+    }
+    return [];
+  };
+
+  /**
+   * 接口数据归一化
+   * 一级（分类）节点：key 取 categoryId，value 取 categoryName
+   * 二级（设备）节点：key 取 deviceId（唯一），value 取 deviceName，deviceId 原样保留用于 queryPage 查询
+   */
+  const normalizeTreeData = (data: any[]): MonitorTreeNode[] => {
+    const normalizeCategory = (item: any): MonitorTreeNode | null => {
+      if (!item || typeof item !== 'object') return null;
+      const node: MonitorTreeNode = {
+        key: String(item.key ?? item.categoryId ?? item.code ?? item.id ?? ''),
+        value: String(item.value ?? item.categoryName ?? item.name ?? item.title ?? item.label ?? item.text ?? ''),
+        deviceId: item.deviceId ?? item.id,
+      };
+      if (!node.key || !node.value) return null;
+      if (Array.isArray(item.children) && item.children.length) {
+        const children = item.children
+          .map(normalizeDevice)
+          .filter((child): child is MonitorTreeNode => !!child);
+        if (children.length) node.children = children;
+      }
+      return node;
+    };
+
+    const normalizeDevice = (item: any): MonitorTreeNode | null => {
+      if (!item || typeof item !== 'object') return null;
+      const deviceId = item.deviceId ?? item.id;
+      // tab 唯一 key：优先 deviceId（数字唯一），回退 deviceCode
+      const devKey = String(deviceId ?? item.deviceCode ?? item.code ?? '');
+      const value = String(item.deviceName ?? item.name ?? item.value ?? item.title ?? item.label ?? '');
+      if (!devKey || !value) return null;
+      const node: MonitorTreeNode = {
+        key: devKey,
+        value,
+        deviceId,
+      };
+      return node;
+    };
+
+    return data.map(normalizeCategory).filter((node): node is MonitorTreeNode => !!node);
+  };
+
+  // 默认选中第一个一级页签（有 children 时联动选中第一个二级页签）
+  const selectDefaultTab = () => {
+    const first = categoryData.value[0];
+    if (!first) return;
+    activeCategory.value = first.key;
+    activeChild.value = first.children && first.children.length ? first.children[0].key : '';
+  };
+
+  // 切换一级页签时，联动选中其第一个二级页签（无 children 则清空）
+  const handleCategoryChange = (key: string) => {
+    const category = categoryData.value.find((item) => item.key === key);
+    activeChild.value = category?.children?.length ? category.children[0].key : '';
+  };
+
+  // 初始化：调用接口获取页签数据
+  const fetchCategoryData = async () => {
+    try {
+      const res: any = await getMonitorSourceTree();
+      categoryData.value = normalizeTreeData(resolveList(res));
+      if (!categoryData.value.length) {
+        // 便于排查：接口成功但解析不出页签数据时，打印原始返回结构
+        console.warn('[/bems/monitorSource/tree] 返回数据为空或字段无法解析，原始返回：', res);
+      }
+    } catch (e) {
+      console.error('获取监测源页签数据失败', e);
+      categoryData.value = [];
+    } finally {
+      isLoaded.value = true;
+    }
+    selectDefaultTab();
+  };
+
+  onMounted(() => {
+    fetchCategoryData();
   });
-
-  // 点击一级分类
-  const handleCategoryClick = (category: any) => {
-    activeCategory.value = category.key;
-
-    // 如果点击的是已经展开的分类，则收起
-    if (expandedCategory.value === category.key) {
-      expandedCategory.value = '';
-      activeChild.value = '';
-    } else {
-      // 否则展开当前分类，收起其他分类
-      expandedCategory.value = category.key;
-      activeChild.value = '';
-    }
-
-    // 如果没有子分类，直接渲染组件
-    if (!category.children || category.children.length === 0) {
-      expandedCategory.value = '';
-    }
-  };
-
-  // 点击二级分类
-  const handleChildClick = (child: any, parentKey: string) => {
-    activeChild.value = child.key;
-    activeCategory.value = parentKey;
-    // 保持当前分类展开
-    expandedCategory.value = parentKey;
-  };
 </script>
 
 <style scoped lang="less">
@@ -140,110 +155,44 @@
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-  }
-
-  .tabs-container {
     background: #fff;
-    border-bottom: 1px solid #e8e8e8;
-    padding: 0;
   }
 
-  .level-one-tabs {
+  /* 一级页签：参考 standardizedManagement 的 tab 页 */
+  .page-tabs {
+    flex: 1;
+    min-height: 0;
     display: flex;
-    align-items: center;
-    overflow-x: auto;
-    white-space: nowrap;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-
-    &::-webkit-scrollbar {
-      display: none; /* Chrome, Safari, Opera */
-    }
-  }
-
-  .level-one-tab {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 12px;
-    cursor: pointer;
-    transition: color 0.2s ease;
+    flex-direction: column;
     background: #fff;
-    border-right: 1px solid #e8e8e8;
-    color: #333;
-    font-size: 13px;
-    user-select: none;
-    position: relative;
 
-    &:hover {
-      color: #1890ff;
+    :deep(.ant-tabs-nav) {
+      margin: 0;
     }
 
-    &.active {
-      color: #1890ff;
-      font-weight: 500;
+    :deep(.ant-tabs-content-holder) {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
     }
 
-    .tab-label {
-      flex-shrink: 0;
-    }
-
-    .arrow-icon {
-      font-size: 14px;
-      color: #999;
-      transition: transform 0.2s ease;
+    :deep(.ant-tabs-content) {
+      height: 100%;
     }
   }
 
-  .level-two-tabs {
-    display: flex;
-    align-items: center;
+  /* 二级页签 */
+  .sub-level-tabs {
+    padding: 8px 8px 0;
     background: #f7f7f7;
-    border-bottom: 1px solid #e8e8e8;
-    padding: 0;
-    overflow: hidden;
-    max-width: 0;
-    animation: expandWidth 0.3s ease-out forwards;
-  }
 
-  @keyframes expandWidth {
-    from {
-      max-width: 0;
-      opacity: 0;
-    }
-    to {
-      max-width: 1000px;
-      opacity: 1;
-    }
-  }
-
-  .level-two-tab {
-    display: flex;
-    align-items: center;
-    padding: 6px 16px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    color: #666;
-    font-size: 12px;
-    border-right: 1px solid #e8e8e8;
-    user-select: none;
-
-    &:hover {
-      color: #1890ff;
-    }
-
-    &.active {
-      color: #1890ff;
-      font-weight: 500;
-    }
-
-    .child-label {
-      flex-shrink: 0;
+    :deep(.ant-tabs-nav) {
+      margin: 0 0 0 16px;
     }
   }
 
   .component-container {
-    flex: 1;
+    height: 100%;
     overflow: auto;
     padding: 16px;
     background: #f0f2f5;
@@ -254,10 +203,21 @@
     align-items: center;
     justify-content: center;
     height: 100%;
+    min-height: 300px;
     color: #999;
     font-size: 16px;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .empty-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 14px;
+    background: #fff;
   }
 </style>

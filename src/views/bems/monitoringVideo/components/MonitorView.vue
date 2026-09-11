@@ -108,7 +108,7 @@
   import StatCard from '/@/views/bems/monitoringSource/components/StatCard.vue';
   import CameraCarousel from './CameraCarousel/index.vue';
   import { getCameraPackageGroup, getCameraLocalPlayUrl } from '../index.api';
-  import type { MonitorTreeNode } from '../index.api';
+  import type { PackageGroup, PackageVideo } from '../index.api';
 
   interface CameraItem {
     id: number | string;
@@ -153,27 +153,15 @@
   const cameraTreeData = ref<any[]>([]);
   const cameraExpandedKeys = ref<(string | number)[]>([]);
   const cameraSearchValue = ref('');
-  /** 叶子 key → 树节点映射，确认时用于取编码/名称 */
-  const cameraLeafMap = new Map<string, MonitorTreeNode>();
+  /** 叶子 key → 摄像头（PackageVideo）映射，确认时用于取编码/名称 */
+  const cameraLeafMap = new Map<string, PackageVideo>();
 
-  const isLeafKey = (k: string | number): k is string => typeof k === 'string' && k.startsWith('cam-');
+  /** 叶子 key 以 v- 开头 */
+  const isLeafKey = (k: string | number): k is string => typeof k === 'string' && k.startsWith('v-');
 
-  const getNodeName = (node: MonitorTreeNode) => node?.title || node?.name || '未命名摄像头';
-
-  const getNodeCode = (node: MonitorTreeNode) =>
-    String(
-      node?.deviceCode ||
-        node?.cameraCode ||
-        node?.cameraIndexCode ||
-        node?.indexCode ||
-        node?.key ||
-        node?.value ||
-        '',
-    ).trim();
-
-  /** 取摄像头 indexCode（/bems/hikvision/camera/localPlayUrl 的入参 cameraIndexCode 取此值） */
-  const getNodeIndexCode = (node: MonitorTreeNode) =>
-    String(node?.indexCode ?? node?.cameraIndexCode ?? '').trim() || getNodeCode(node);
+  /** 取摄像头唯一编码：以 indexCode 为准，兼容旧格式 systemId（去 #）/id */
+  const getVideoCode = (v: PackageVideo) =>
+    String(v?.indexCode || (v?.systemId || '').replace(/#/g, '') || v?.id || '').trim();
 
   /** 从播放地址接口返回中提取可用地址（兼容字符串 / 对象 / 数组 / indexCode 映射结构） */
   const pickPlayUrl = (res: any): string => {
@@ -199,152 +187,51 @@
     return urls[0] || '';
   };
 
-  /** 分组 / 摄像头常见字段名（兼容海康 packageGroup 返回结构） */
-  const NODE_NAME_KEYS = ['groupName', 'packageGroupName', 'cameraName', 'name', 'title', 'label', 'value'];
-  const NODE_CODE_KEYS = [
-    'groupCode',
-    'packageGroupCode',
-    'cameraIndexCode',
-    'indexCode',
-    'cameraCode',
-    'deviceCode',
-    'code',
-    'id',
-    'key',
-  ];
-  const NODE_CHILDREN_KEYS = ['children', 'cameraList', 'cameras', 'deviceList', 'list', 'items', 'nodes'];
-
-  const pickField = (obj: any, keys: string[]) => {
-    for (const key of keys) {
-      const value = obj?.[key];
-      if (value !== undefined && value !== null && value !== '') return value;
-    }
-    return undefined;
+  /** 计算分组下（含子孙）摄像头总数 */
+  const countGroupCameras = (g: PackageGroup): number => {
+    const direct = (g?.videoList || []).length;
+    const sub = (g?.children || []).reduce((sum, child) => sum + countGroupCameras(child), 0);
+    return direct + sub;
   };
 
-  /** 取节点的子列表（分组节点可能用 children / cameraList 等字段承载下级） */
-  const getChildList = (obj: any): any[] | null => {
-    for (const key of NODE_CHILDREN_KEYS) {
-      if (Array.isArray(obj?.[key]) && obj[key].length > 0) return obj[key];
-    }
-    return null;
-  };
+  /** 在线状态：online 为数值 1 或布尔 true 均视为在线 */
+  const isVideoOnline = (v: PackageVideo) => v?.online === 1 || v?.online === '1' || v?.online === true;
 
   /**
-   * 归一化海康 /bems/hikvision/camera/packageGroup 返回数据
-   * 统一成 { key, title, camera, deviceCode, cameraCode, children } 结构，供下方树构建与统计复用
-   * - 有子列表 → 分组节点
-   * - 无子列表且带摄像头编码（或 camera 标记） → 摄像头叶子
+   * 分组树 → a-tree treeData，并填充叶子映射
+   * 与安防「选择摄像头」口径一致：摄像头取分组 videoList，子分组取 children，
+   * 摄像头唯一编码取 indexCode（兼容旧格式 systemId/id）
    */
-  const normalizeCameraTree = (payload: any): MonitorTreeNode[] => {
-    const LIST_WRAP_FIELDS = [
-      'list',
-      'records',
-      'rows',
-      'items',
-      'data',
-      'result',
-      'tree',
-      'children',
-      'packageGroupList',
-      'groupList',
-    ];
-    let list: any[] = [];
-    if (Array.isArray(payload)) {
-      list = payload;
-    } else if (payload && typeof payload === 'object') {
-      for (const field of LIST_WRAP_FIELDS) {
-        if (Array.isArray(payload[field])) {
-          list = payload[field];
-          break;
-        }
-      }
-    }
-
-    const walk = (items: any[]): MonitorTreeNode[] =>
-      (items || []).reduce<MonitorTreeNode[]>((acc, item) => {
-        if (!item || typeof item !== 'object') return acc;
-
-        const children = getChildList(item);
-        const cameraFlagFalse = item.camera === 'false' || item.camera === false;
-        const isCamera =
-          !cameraFlagFalse &&
-          !children &&
-          (item.camera === 'true' ||
-            item.camera === true ||
-            pickField(item, ['cameraIndexCode', 'indexCode', 'cameraCode']) !== undefined);
-
-        if (isCamera) {
-          const code = String(pickField(item, NODE_CODE_KEYS) ?? '').trim();
-          const name = String(pickField(item, NODE_NAME_KEYS) ?? code ?? '') || '未命名摄像头';
-          acc.push({
-            ...item,
-            key: code || name,
-            value: code || name,
-            title: name,
-            name,
-            camera: 'true',
-            deviceCode: code,
-            cameraCode: code,
-            url: item.url || item.hls || item.rtsp || '',
-          });
-          return acc;
-        }
-
-        const groupName = String(pickField(item, NODE_NAME_KEYS) ?? '') || '未命名分组';
-        acc.push({
-          ...item,
-          key: String(pickField(item, NODE_CODE_KEYS) ?? groupName),
-          title: groupName,
-          name: groupName,
-          children: walk(children || []),
-        });
-        return acc;
-      }, []);
-
-    return walk(list);
-  };
-
-  const isCameraNode = (node: MonitorTreeNode) => node?.camera === 'true' || node?.camera === true;
-
-  const isOnline = (node: MonitorTreeNode) => {
-    const value = node?.online ?? node?.status;
-    // 无状态字段时默认视为在线
-    if (value === undefined || value === null || value === '') return true;
-    return value === 1 || value === '1' || value === true || value === 'online' || value === '在线';
-  };
-
-  /** 统计节点下的摄像头数量（含子分组） */
-  const countCameras = (nodes: MonitorTreeNode[]): number =>
-    (nodes || []).reduce((sum, node) => sum + (isCameraNode(node) ? 1 : countCameras(node?.children || [])), 0);
-
-  /** 将后端树转为 a-tree 数据，并填充叶子映射 */
-  const buildCameraTreeData = (nodes: MonitorTreeNode[]): any[] => {
+  const buildCameraTreeData = (groups: PackageGroup[]): any[] => {
     cameraLeafMap.clear();
-    const walk = (list: MonitorTreeNode[]): any[] =>
-      (list || []).map((node) => {
-        if (isCameraNode(node)) {
-          const key = `cam-${getNodeCode(node) || node?.title || node?.name || Math.random().toString(36).slice(2)}`;
-          cameraLeafMap.set(key, node);
-          return { title: getNodeName(node), key, isLeaf: true };
-        }
-        return {
-          title: node?.title || node?.name || '未命名分组',
-          key: `grp-${getNodeCode(node) || node?.title || node?.name}`,
-          disableCheckbox: true,
-          // 分组节点名称后展示其下摄像头总数
-          cameraCount: countCameras(node?.children || []),
-          children: walk(node?.children || []),
-        };
-      });
-    return walk(nodes);
+    const walk = (list: PackageGroup[]): any[] =>
+      (list || [])
+        .map((g) => {
+          const leaves = (g.videoList || []).map((v) => {
+            const leafKey = `v-${getVideoCode(v)}`;
+            cameraLeafMap.set(leafKey, v);
+            return { title: v.name, key: leafKey, isLeaf: true };
+          });
+          const subChildren = walk(g.children || []);
+          return {
+            title: g.name,
+            name: g.name,
+            key: `grp-${g.indexCode || g.id}`,
+            disableCheckbox: true,
+            // 分组节点名称后展示其下摄像头总数
+            cameraCount: countGroupCameras(g),
+            children: [...leaves, ...subChildren],
+          };
+        })
+        .filter((n) => n.children.length > 0);
+    return walk(groups);
   };
 
-  /** 统计分组数量（非摄像头节点） */
-  const countGroups = (nodes: MonitorTreeNode[]): number =>
-    (nodes || []).reduce((sum, node) => {
-      if (isCameraNode(node)) return sum;
-      return sum + 1 + countGroups(node?.children || []);
+  /** 统计分组数量（含子分组，忽略空分组） */
+  const countGroups = (groups: PackageGroup[]): number =>
+    (groups || []).reduce((sum, g) => {
+      if (!(g?.videoList?.length || g?.children?.length)) return sum;
+      return sum + 1 + countGroups(g?.children || []);
     }, 0);
 
   /** 收集所有分组 key（搜索时全部展开） */
@@ -356,22 +243,22 @@
     treeLoading.value = true;
     try {
       const res = await getCameraPackageGroup();
-      const nodes: MonitorTreeNode[] = normalizeCameraTree(res);
-      if (!nodes.length) {
+      const groups: PackageGroup[] = Array.isArray(res) ? res : [];
+      if (!groups.length) {
         // 便于排查：接口成功但无数据时打印原始返回结构
-        console.warn('[bems/hikvision/camera/packageGroup] 未解析到摄像头数据，原始返回：', res);
+        console.warn('[bems/hikvision/camera/packageGroup] 返回数据为空，原始返回：', res);
       }
-      cameraTreeData.value = buildCameraTreeData(nodes);
+      cameraTreeData.value = buildCameraTreeData(groups);
       cameraExpandedKeys.value = cameraTreeData.value.map((n) => n.key);
       // 统计：总数 / 在线 / 离线 / 分组
       cameraTotalCount.value = cameraLeafMap.size;
       let online = 0;
-      cameraLeafMap.forEach((node) => {
-        if (isOnline(node)) online += 1;
+      cameraLeafMap.forEach((v) => {
+        if (isVideoOnline(v)) online += 1;
       });
       cameraOnlineCount.value = online;
       cameraOfflineCount.value = cameraTotalCount.value - online;
-      groupCount.value = countGroups(nodes);
+      groupCount.value = countGroups(groups);
     } catch (error) {
       console.error('获取监控摄像头树失败:', error);
     } finally {
@@ -394,7 +281,7 @@
   const checkedCameras = computed(() =>
     cameraCheckedKeys.value.filter(isLeafKey).map((k) => ({
       key: k,
-      name: cameraLeafMap.get(k)?.title || cameraLeafMap.get(k)?.name || k,
+      name: cameraLeafMap.get(k)?.name || k,
     })),
   );
 
@@ -464,26 +351,33 @@
     }
     confirmLoading.value = true;
     try {
-      // 逐路并行请求：cameraIndexCode 取选中摄像头数据中的 indexCode
+      // 逐路并行请求：cameraIndexCode 取选中摄像头（videoList 项）的 indexCode
       const list = await Promise.all(
         leafKeys.map(async (key): Promise<CameraItem | null> => {
-          const node = cameraLeafMap.get(key);
-          if (!node) return null;
-          const indexCode = getNodeIndexCode(node);
-          let url = node?.url || '';
-          if (!url && indexCode) {
+          const v = cameraLeafMap.get(key);
+          if (!v) return null;
+          const indexCode = getVideoCode(v);
+          let url = '';
+          // 心跳 streamKey 取摄像头唯一编码 cameraIndexCode
+          let streamKey = indexCode;
+          if (indexCode) {
             try {
+              // 接口返回：url 为 m3u8 播放地址，cameraIndexCode 为摄像头唯一编码
               const res = await getCameraLocalPlayUrl({ cameraIndexCode: indexCode });
-              url = pickPlayUrl(res);
+              url = res?.url || pickPlayUrl(res) || '';
+              // streamKey 优先取播放接口返回的 streamKey，其次取 cameraIndexCode
+              streamKey = res?.streamKey || res?.cameraIndexCode || indexCode;
             } catch (error) {
               console.error('获取摄像头播放地址失败:', indexCode, error);
             }
           }
+          // 接口未返回播放地址时，回退到树节点自带 url
+          if (!url) url = v?.url || '';
           return {
-            id: indexCode || key,
-            cameraName: getNodeName(node),
+            id: streamKey || key,
+            cameraName: v.name,
             url,
-            indexCode,
+            indexCode: streamKey,
             treeKey: key,
           };
         }),

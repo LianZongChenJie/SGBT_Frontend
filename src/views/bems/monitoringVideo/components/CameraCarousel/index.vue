@@ -34,6 +34,7 @@
                   v-if="visitedPages.includes(pageIndex) && camera.url"
                   :key="`${camera.id}-${refreshTickMap[camera.id] || 0}`"
                   :url="camera.url"
+                  :stream-key="camera.indexCode"
                 />
                 <div v-else class="camera-preview-fallback">
                   <video-camera-outlined class="fallback-icon" />
@@ -65,7 +66,12 @@
     <div v-if="fullscreenCamera" class="fullscreen-overlay">
       <div class="fullscreen-container">
         <div class="fullscreen-video-wrap">
-          <VideoPlayer v-if="fullscreenCamera.url" :url="fullscreenCamera.url" :controls="true" />
+          <VideoPlayer
+            v-if="fullscreenCamera.url"
+            :url="fullscreenCamera.url"
+            :stream-key="fullscreenCamera.indexCode"
+            :controls="true"
+          />
           <div v-else class="video-placeholder">
             <video-camera-outlined class="video-icon" />
             <div class="video-text">暂无视频流</div>

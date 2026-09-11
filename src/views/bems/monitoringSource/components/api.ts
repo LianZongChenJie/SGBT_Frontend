@@ -6,6 +6,8 @@ enum Api {
   getDeviceByCategoryId = '/bems/deviceAttribute/getByDeviceId',
   // 统一按设备分页查询属性数据（点击标签页时调用）
   queryPage = '/bems/deviceAttribute/queryPage',
+  // 历史趋势查询（回风二氧化碳/回风温度等）
+  returnAirCo2Trend = '/bems/echarts/returnAirCo2Trend/query',
 }
 export const getDeviceList = (params) => defHttp.get({ url: Api.getDeviceListApi, params });
 /**
@@ -28,4 +30,10 @@ export const getDeviceByCategoryId = (params) => defHttp.get({ url: Api.getDevic
  * @param params 需包含 deviceId
  */
 export const getDeviceAttributePage = (params) => defHttp.get({ url: Api.queryPage, params });
+
+/**
+ * 历史趋势查询（回风二氧化碳/回风温度等）
+ * @param params deviceIds / attributeName / granularity，可选 startTime、endTime
+ */
+export const getReturnAirCo2Trend = (params) => defHttp.get({ url: Api.returnAirCo2Trend, params });
 

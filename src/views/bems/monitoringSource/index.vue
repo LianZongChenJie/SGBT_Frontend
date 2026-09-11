@@ -1,5 +1,12 @@
 <template>
   <div class="monitoring-source-main-box">
+    <!-- 顶部统计卡片（数据来自 /bems/deviceStatistis/statistics 接口） -->
+    <div class="stats-row">
+      <StatCard label="设备数量" :value="statData.deviceCount" change-text="" color="blue" :icon="DeviceIcon" />
+      <StatCard label="设备类别数量" :value="statData.categorycount" change-text="" color="green" :icon="CategoryIcon" />
+      <StatCard label="采集点位数" :value="statData.attributeCount" change-text="" color="orange" :icon="PointIcon" />
+      <StatCard label="好的数据数" :value="statData.goodQualityCount" change-text="" color="purple" :icon="GoodIcon" />
+    </div>
     <!-- 一级 tab 页签（数据来自 /bems/monitorSource/tree 接口） -->
     <a-tabs
       v-if="categoryData.length"
@@ -36,9 +43,24 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
-  import { getMonitorSourceTree } from './index.api';
+  import { ref, onMounted, h } from 'vue';
+  import { getMonitorSourceTree, getDeviceStatistics } from './index.api';
   import DeviceDataTable from './components/DeviceDataTable.vue';
+  import StatCard from './components/StatCard.vue';
+
+  // 统计卡片图标（emoji）
+  const DeviceIcon = () => h('span', { style: 'font-size: 20px;' }, '🖥️');
+  const CategoryIcon = () => h('span', { style: 'font-size: 20px;' }, '🗂️');
+  const PointIcon = () => h('span', { style: 'font-size: 20px;' }, '📍');
+  const GoodIcon = () => h('span', { style: 'font-size: 20px;' }, '✅');
+
+  // 顶部统计数据
+  const statData = ref({
+    deviceCount: '--',
+    categorycount: '--',
+    attributeCount: '--',
+    goodQualityCount: '--',
+  });
 
   interface MonitorTreeNode {
     key: string;
@@ -144,7 +166,25 @@
     selectDefaultTab();
   };
 
+  // 获取顶部统计数据
+  const fetchStatistics = async () => {
+    try {
+      const res: any = await getDeviceStatistics();
+      if (res) {
+        statData.value = {
+          deviceCount: res.deviceCount ?? '--',
+          categorycount: res.categorycount ?? res.categoryCount ?? '--',
+          attributeCount: res.attributeCount ?? '--',
+          goodQualityCount: res.goodQualityCount ?? '--',
+        };
+      }
+    } catch (e) {
+      console.error('获取监测源统计数据失败', e);
+    }
+  };
+
   onMounted(() => {
+    fetchStatistics();
     fetchCategoryData();
   });
 </script>
@@ -156,6 +196,15 @@
     height: 100%;
     overflow: hidden;
     background: #fff;
+  }
+
+  /* 顶部统计卡片 */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    padding: 16px 16px 0;
+    flex-shrink: 0;
   }
 
   /* 一级页签：参考 standardizedManagement 的 tab 页 */

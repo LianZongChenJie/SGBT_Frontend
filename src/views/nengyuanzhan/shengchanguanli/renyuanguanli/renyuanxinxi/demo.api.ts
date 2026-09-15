@@ -1,5 +1,10 @@
 import { defHttp } from '/@/utils/http/axios';
 import { Modal } from 'ant-design-vue';
+import {
+  buildEmployeeEditPayload,
+  type EnergyEmployeeCreatePayload,
+  type EnergyEmployeeEditPayload,
+} from './employeePayload';
 
 enum Api {
   list = '/operation/energyEmployee/list',
@@ -14,17 +19,7 @@ enum Api {
   importExcel = '/operation/energyEmployee/importExcel',
 }
 
-export interface EnergyEmployeePayload {
-  id?: string | number;
-  employeeName: string;
-  employeeCode: string;
-  employeeType: string;
-  company: string;
-  idCard: string;
-  position: string;
-  sysOrgCode: string;
-  contactNo: string;
-}
+export type EnergyEmployeePayload = EnergyEmployeeCreatePayload | EnergyEmployeeEditPayload;
 
 interface IdParams {
   id: string | number;
@@ -54,22 +49,6 @@ export interface TreeSelectDTO {
   parentId?: string | number;
   status?: string;
   children?: TreeSelectDTO[];
-}
-
-function toTrimmedString(value: unknown): string {
-  if (value == null) return '';
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item ?? '').trim())
-      .filter(Boolean)
-      .join(',');
-  }
-  if (typeof value === 'object') {
-    const item = value as Record<string, unknown>;
-    const candidate = item.value ?? item.id ?? item.code ?? item.label ?? '';
-    return String(candidate ?? '').trim();
-  }
-  return String(value).trim();
 }
 
 /**
@@ -138,21 +117,4 @@ export const batchDeleteDemo = (params: BatchDeleteParams, handleSuccess: () => 
 
 export const getTreeListRenyuan = (params?: Record<string, unknown>) => defHttp.get<TreeSelectDTO[]>({ url: Api.TreeList, params });
 
-export function buildEmployeePayload(values: Record<string, unknown>): EnergyEmployeePayload {
-  const payload: EnergyEmployeePayload = {
-    employeeName: toTrimmedString(values.employeeName),
-    employeeCode: toTrimmedString(values.employeeCode),
-    employeeType: toTrimmedString(values.employeeType),
-    company: toTrimmedString(values.company),
-    idCard: toTrimmedString(values.idCard),
-    position: toTrimmedString(values.position),
-    sysOrgCode: toTrimmedString(values.sysOrgCode),
-    contactNo: toTrimmedString(values.contactNo),
-  };
-
-  if (values.id) {
-    payload.id = values.id as string | number;
-  }
-
-  return payload;
-}
+export const buildEmployeePayload = buildEmployeeEditPayload;

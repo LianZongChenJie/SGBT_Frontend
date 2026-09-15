@@ -1,6 +1,5 @@
 import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
-import { render } from '/@/utils/common/renderUtils';
 
 export const columns: BasicColumn[] = [
   {
@@ -13,28 +12,6 @@ export const columns: BasicColumn[] = [
     title: '人员编码',
     dataIndex: 'employeeCode',
     width: 120,
-    resizable: true,
-  },
-  {
-    title: '人员类型',
-    dataIndex: 'employeeType',
-    width: 120,
-    resizable: true,
-    // dictCode: 'employeeType',
-    customRender: ({ text }) => {
-      return render.renderDict(text, 'employeeType');
-    },
-  },
-  {
-    title: '单位',
-    dataIndex: 'company',
-    width: 130,
-    resizable: true,
-  },
-  {
-    title: '证件号码',
-    dataIndex: 'idCard',
-    width: 140,
     resizable: true,
   },
   {
@@ -98,24 +75,6 @@ export const searchFormSchema: FormSchema[] = [
     colProps: { span: 8 },
     componentProps: {
       placeholder: '请输入人员编码',
-    },
-  },
-  {
-    field: 'employeeType',
-    label: '人员类型',
-    component: 'JDictSelectTag',
-    colProps: { span: 8 },
-    componentProps: {
-      dictCode: 'employeeType',
-    },
-  },
-  {
-    field: 'company',
-    label: '单位',
-    component: 'Input',
-    colProps: { span: 8 },
-    componentProps: {
-      placeholder: '请输入单位',
     },
   },
 ];

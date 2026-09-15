@@ -63,7 +63,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'employeeName',
     label: '人员姓名',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 10 },
     componentProps: {
       placeholder: '请输入人员姓名',
     },
@@ -72,7 +72,7 @@ export const searchFormSchema: FormSchema[] = [
     field: 'employeeCode',
     label: '人员编码',
     component: 'Input',
-    colProps: { span: 8 },
+    colProps: { span: 10 },
     componentProps: {
       placeholder: '请输入人员编码',
     },

@@ -2,9 +2,10 @@ node_modules
 .DS_Store
 .github
 dist
+dist.zip
 .npmrc
 .cache
-.env.development
+
 tests/server/static
 tests/server/static/upload
 
@@ -39,3 +40,4 @@ os_del.cmd
 # 忽略pnpm的锁文件
 pnpm-lock.yaml
 
+.freebuff

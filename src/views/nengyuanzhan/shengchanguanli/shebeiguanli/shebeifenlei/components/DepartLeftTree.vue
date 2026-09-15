@@ -46,6 +46,5 @@
 
   defineExpose({
     loadRootTreeData: () => treeRef.value?.loadRootTreeData(),
-    clearSelectedNode: () => treeRef.value?.clearSelectedNode(),
   });
 </script>

@@ -179,11 +179,6 @@
     }
   }
 
-  function clearSelectedNode() {
-    selectedKeys.value = [];
-    currentNode.value = null;
-  }
-
   async function onSearch(value: string) {
     if (!value) {
       await loadRootTreeData();
@@ -220,6 +215,5 @@
   defineExpose({
     loadRootTreeData,
     setSelectedNode,
-    clearSelectedNode,
   });
 </script>

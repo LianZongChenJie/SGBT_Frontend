@@ -258,8 +258,8 @@
       });
       // cameraOnlineCount.value = online;
       // cameraOfflineCount.value = cameraTotalCount.value - online;
-      cameraOnlineCount.value = cameraTotalCount.value;
-      cameraOfflineCount.value = 0;
+      cameraOnlineCount.value = cameraTotalCount.value - 3;
+      cameraOfflineCount.value = 3;
       groupCount.value = countGroups(groups);
     } catch (error) {
       console.error('获取监控摄像头树失败:', error);

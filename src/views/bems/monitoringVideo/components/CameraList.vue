@@ -4,16 +4,7 @@
       <h3><video-camera-outlined /> 摄像头列表</h3>
     </div>
     <div class="card-body">
-      <BasicTable @register="registerTable">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'online'">
-            <span v-if="!hasOnlineStatus(record)" class="camera-status">-</span>
-            <a-tag v-else :color="isOnline(record) ? 'success' : 'error'">
-              {{ isOnline(record) ? '在线' : '离线' }}
-            </a-tag>
-          </template>
-        </template>
-      </BasicTable>
+      <BasicTable @register="registerTable" />
     </div>
   </div>
 </template>
@@ -32,18 +23,6 @@
       if (value !== undefined && value !== null && value !== '') return value;
     }
     return '';
-  };
-
-  /** 是否存在在线状态字段 */
-  const hasOnlineStatus = (record: CameraRecord) => {
-    const value = record?.online ?? record?.status;
-    return value !== undefined && value !== null && value !== '';
-  };
-
-  /** 在线状态：1/true/'online' 视为在线，其余为离线 */
-  const isOnline = (record: CameraRecord) => {
-    const value = record?.online ?? record?.status;
-    return value === 1 || value === '1' || value === true || value === 'online' || value === '在线';
   };
 
   /** 监控点类型：0-枪机，1-半球，2-快球，3-带云台枪机 */
@@ -92,10 +71,11 @@
       customRender: ({ record }) => cameraTypeText(record?.cameraType),
     },
     {
-      title: '在线状态',
-      dataIndex: 'online',
-      key: 'online',
-      width: 110,
+      title: '创建时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      width: 180,
+      customRender: ({ record }) => record?.createTime || '-',
     },
     {
       title: '更新时间',
@@ -166,9 +146,5 @@
     .card-body {
       padding: 22px;
     }
-  }
-
-  .camera-status {
-    color: #bfbfbf;
   }
 </style>

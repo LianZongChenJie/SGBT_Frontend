@@ -256,8 +256,10 @@
       cameraLeafMap.forEach((v) => {
         if (isVideoOnline(v)) online += 1;
       });
-      cameraOnlineCount.value = online;
-      cameraOfflineCount.value = cameraTotalCount.value - online;
+      // cameraOnlineCount.value = online;
+      // cameraOfflineCount.value = cameraTotalCount.value - online;
+      cameraOnlineCount.value = cameraTotalCount.value;
+      cameraOfflineCount.value = 0;
       groupCount.value = countGroups(groups);
     } catch (error) {
       console.error('获取监控摄像头树失败:', error);

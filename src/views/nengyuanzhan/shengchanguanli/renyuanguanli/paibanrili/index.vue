@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
-    <a-card :bodyStyle="{ padding: '12px' }" class="mt3 mb3 ml3 mr3">
-      <BasicForm @register="registerForm" @submit="handleSubmit"></BasicForm>
-      <a-space class="mt3">
+    <a-card :bodyStyle="{ padding: 0 }" class="mt3 mb3 ml3 mr3">
+      <BasicForm style="margin-top: 20px" @register="registerForm" @submit="handleSubmit"></BasicForm>
+      <a-space class="mb3 ml3">
         <a-button
           v-if="hasPermission('operation:operation_plan_duty_leader:add')"
           preIcon="ant-design:setting-outlined"
@@ -120,10 +120,6 @@
     autoAdvancedCol: 3,
     alwaysShowLines: 2,
     baseColProps: { span: 6 },
-    actionColOptions: {
-      span: 6,
-      style: { textAlign: 'left' },
-    },
   });
 
   async function handleSubmit(values: Record<string, any>) {

@@ -73,11 +73,10 @@
       schemas: searchFormSchema,
       // fieldMapToTime: [['birthday', ['birthday_begin', 'birthday_end'], 'YYYY-MM-DD']],
       // fieldMapToNumber: [['age', ['age_begin', 'age_end']]],
-      autoAdvancedCol: 2,
-      actionColOptions: {
-        span: 8,
-        style: { textAlign: 'left' },
-      },
+      // autoAdvancedCol: 2,
+      // actionColOptions: {
+      //   style: { textAlign: 'left' },
+      // },
     },
     //自定义默认排序
     // defSort: {

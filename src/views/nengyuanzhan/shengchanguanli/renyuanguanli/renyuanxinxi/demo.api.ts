@@ -19,7 +19,7 @@ enum Api {
   importExcel = '/operation/energyEmployee/importExcel',
 }
 
-export type EnergyEmployeePayload = EnergyEmployeeCreatePayload | EnergyEmployeeEditPayload;
+export type EnergyEmployeePayload = EnergyEmployeeCreatePayload[] | EnergyEmployeeEditPayload;
 
 interface IdParams {
   id: string | number;

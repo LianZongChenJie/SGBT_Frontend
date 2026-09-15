@@ -10,7 +10,7 @@ export interface SystemUserRecord {
   postText?: string;
 }
 
-export interface EnergyEmployeeCreatePayload {
+interface EnergyEmployeeMappedPayload {
   employeeName: string;
   employeeCode: string;
   position: string;
@@ -18,7 +18,11 @@ export interface EnergyEmployeeCreatePayload {
   contactNo: string;
 }
 
-export interface EnergyEmployeeEditPayload extends EnergyEmployeeCreatePayload {
+export interface EnergyEmployeeCreatePayload extends EnergyEmployeeMappedPayload {
+  id: string | number;
+}
+
+export interface EnergyEmployeeEditPayload extends EnergyEmployeeMappedPayload {
   id?: string | number;
   employeeType: string;
   company: string;
@@ -43,12 +47,17 @@ export function toTrimmedString(value: unknown): string {
 
 export function buildEmployeeCreatePayload(user: SystemUserRecord): EnergyEmployeeCreatePayload {
   return {
+    id: user.id,
     employeeName: toTrimmedString(user.realname),
     employeeCode: toTrimmedString(user.workNo),
     position: toTrimmedString(user.post),
     sysOrgCode: toTrimmedString(user.orgCode),
     contactNo: toTrimmedString(user.phone),
   };
+}
+
+export function buildEmployeeBatchCreatePayload(users: SystemUserRecord[]): EnergyEmployeeCreatePayload[] {
+  return users.map(buildEmployeeCreatePayload);
 }
 
 export function buildEmployeeEditPayload(values: Record<string, unknown>): EnergyEmployeeEditPayload {

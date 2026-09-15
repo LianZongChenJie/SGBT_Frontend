@@ -6,20 +6,22 @@
           <a-row :gutter="[24, 24]" align="middle">
             <a-col :xl="12" :lg="12" :md="24" :sm="24" :xs="24">
               <div class="chart-panel">
-                <Pie height="280px" :chartData="deviceData"></Pie>
+                <Pie height="280px" :chartData="deviceData" :num="deviceTotal"></Pie>
               </div>
             </a-col>
             <a-col :xl="12" :lg="12" :md="24" :sm="24" :xs="24">
-              <a-table class="status-table" :columns="deviceColumns" :data-source="deviceRows" size="small" :pagination="false">
-                <template #bodyCell="{ column, record }">
-                  <template v-if="column.key === 'status'">
-                    <div class="status-cell">
-                      <span class="status-dot" :style="{ backgroundColor: getStatusColor(deviceStatusColors, record.status) }"></span>
-                      <span>{{ record.status }}</span>
-                    </div>
+              <div class="table-panel">
+                <a-table class="status-table" :columns="deviceColumns" :data-source="deviceRows" size="small" :pagination="false" :locale="tableEmptyLocale">
+                  <template #bodyCell="{ column, record }">
+                    <template v-if="column.key === 'status'">
+                      <div class="status-cell">
+                        <span class="status-dot" :style="{ backgroundColor: getStatusColor(deviceStatusColors, record.status) }"></span>
+                        <span>{{ record.status }}</span>
+                      </div>
+                    </template>
                   </template>
-                </template>
-              </a-table>
+                </a-table>
+              </div>
             </a-col>
           </a-row>
         </a-card>
@@ -39,7 +41,7 @@
               </div>
             </a-col>
             <a-col :xl="16" :lg="14" :md="24" :sm="24" :xs="24">
-              <a-row :gutter="[16, 16]">
+              <a-row class="metric-grid metric-grid--repair" :gutter="[16, 16]">
                 <a-col v-for="item in repairMetricCards" :key="item.title" :xl="8" :lg="12" :md="12" :sm="12" :xs="24">
                   <a-card class="metric-card" :bordered="false" :bodyStyle="metricCardBodyStyle">
                     <div class="metric-card__content" :style="getMetricStyle(item)">
@@ -52,6 +54,12 @@
                       </div>
                     </div>
                   </a-card>
+                </a-col>
+                <a-col v-if="repairStatusCards.length === 0" :xl="8" :lg="12" :md="12" :sm="12" :xs="24">
+                  <div class="empty-panel empty-panel--metric">
+                    <Icon icon="ant-design:inbox-outlined" :size="30" color="#cbd5e1" />
+                    <div class="empty-panel__text">暂无数据</div>
+                  </div>
                 </a-col>
               </a-row>
             </a-col>
@@ -100,7 +108,7 @@
               </div>
             </a-col>
             <a-col :xl="12" :lg="8" :md="24" :sm="24" :xs="24">
-              <a-row :gutter="[16, 16]">
+              <a-row class="metric-grid metric-grid--task" :gutter="[16, 16]">
                 <a-col v-for="item in maintenanceMetricCards" :key="item.title" :xl="8" :lg="24" :md="12" :sm="12" :xs="24">
                   <a-card class="metric-card metric-card--wide" :bordered="false" :bodyStyle="metricCardBodyStyle">
                     <div class="metric-card__content" :style="getMetricStyle(item)">
@@ -113,6 +121,12 @@
                       </div>
                     </div>
                   </a-card>
+                </a-col>
+                <a-col v-if="maintenanceMetricCards.length === 0" :span="24">
+                  <div class="empty-panel">
+                    <Icon icon="ant-design:inbox-outlined" :size="42" color="#cbd5e1" />
+                    <div class="empty-panel__text">暂无数据</div>
+                  </div>
                 </a-col>
               </a-row>
             </a-col>
@@ -155,16 +169,18 @@
               </div>
             </a-col>
             <a-col :xl="12" :lg="8" :md="24" :sm="24" :xs="24">
-              <a-table class="status-table" :columns="taskColumns" :data-source="patrolTaskRows" size="small" :pagination="false">
-                <template #bodyCell="{ column, record }">
-                  <template v-if="column.key === 'status'">
-                    <div class="status-cell">
-                      <span class="status-dot" :style="{ backgroundColor: getStatusColor(taskStatusColors, record.status) }"></span>
-                      <span>{{ record.status }}</span>
-                    </div>
+              <div class="table-panel">
+                <a-table class="status-table" :columns="taskColumns" :data-source="patrolTaskRows" size="small" :pagination="false" :locale="tableEmptyLocale">
+                  <template #bodyCell="{ column, record }">
+                    <template v-if="column.key === 'status'">
+                      <div class="status-cell">
+                        <span class="status-dot" :style="{ backgroundColor: getStatusColor(taskStatusColors, record.status) }"></span>
+                        <span>{{ record.status }}</span>
+                      </div>
+                    </template>
                   </template>
-                </template>
-              </a-table>
+                </a-table>
+              </div>
             </a-col>
           </a-row>
         </a-card>
@@ -174,10 +190,20 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import Pie from '@/components/chart/PieHuanquan.vue';
   import { Icon } from '/@/components/Icon';
   import QuickNav from '../components/QuickNav.vue';
+  import {
+    getWorkbenchDeviceStatus,
+    getWorkbenchInspectionTask,
+    getWorkbenchMaintenanceTask,
+    getWorkbenchTodayRepair,
+    type WorkbenchPeriod,
+    type WorkbenchRepairResult,
+    type WorkbenchStatusItem,
+    type WorkbenchTaskResult,
+  } from '/@/views/dashboard/workbench/workbench.api';
 
   interface MetricCardItem {
     title: string;
@@ -207,9 +233,25 @@
     value: number;
   }
 
+  interface TaskViewData {
+    chartData: PieChartItem[];
+    rows: TableRowItem[];
+    metricCards: MetricCardItem[];
+    progress: ProgressPanelItem;
+    taskTotal: number;
+    deviceTotal: number;
+  }
+
   type SectionPeriod = '今天' | '本周' | '本月';
 
-  const loading = ref(false);
+  const periodValueMap: Record<SectionPeriod, WorkbenchPeriod> = {
+    今天: 'today',
+    本周: 'week',
+    本月: 'month',
+  };
+
+  const loadingCount = ref(0);
+  const loading = computed(() => loadingCount.value > 0);
 
   const sectionPeriods: SectionPeriod[] = ['今天', '本周', '本月'];
   const activeMaintenancePeriod = ref<SectionPeriod>('今天');
@@ -217,6 +259,7 @@
 
   const cardBodyStyle = { padding: '22px 24px' };
   const metricCardBodyStyle = { padding: '18px 20px' };
+  const tableEmptyLocale = { emptyText: '暂无数据' };
 
   const deviceStatusColors: Record<string, string> = {
     报废: '#ff7670',
@@ -234,21 +277,34 @@
     已完成: '#4fcce4',
   };
 
-  const deviceData = ref([
-    { name: '维修中', value: 50 },
-    { name: '正常运行', value: 100 },
-    { name: '故障', value: 15 },
-    { name: '停投', value: 40 },
-    { name: '报废', value: 110 },
-  ]);
+  const metricPalette = [
+    { icon: 'ant-design:file-text-outlined', color: '#f59e0b', softColor: 'rgba(245, 158, 11, 0.14)' },
+    { icon: 'ant-design:inbox-outlined', color: '#ef4444', softColor: 'rgba(239, 68, 68, 0.14)' },
+    { icon: 'ant-design:clock-circle-outlined', color: '#3b82f6', softColor: 'rgba(59, 130, 246, 0.14)' },
+    { icon: 'ant-design:tool-outlined', color: '#14b8a6', softColor: 'rgba(20, 184, 166, 0.14)' },
+    { icon: 'ant-design:safety-certificate-outlined', color: '#8b5cf6', softColor: 'rgba(139, 92, 246, 0.14)' },
+    { icon: 'ant-design:check-circle-outlined', color: '#22c55e', softColor: 'rgba(34, 197, 94, 0.14)' },
+  ];
 
-  const baoxiuData = ref([
-    { name: '未派工', value: 50 },
-    { name: '待接单', value: 100 },
-    { name: '待执行', value: 15 },
-    { name: '维修中', value: 40 },
-    { name: '待验证', value: 110 },
-  ]);
+  const emptyProgress: ProgressPanelItem = {
+    percent: 0,
+    label: '任务完成率',
+    total: '任务总数: 0',
+    color: '#36cfc9',
+    softColor: 'rgba(54, 207, 201, 0.16)',
+  };
+
+  const deviceData = ref<PieChartItem[]>([]);
+  const deviceRows = ref<TableRowItem[]>([]);
+  const deviceTotal = ref(0);
+
+  const baoxiuData = ref<PieChartItem[]>([]);
+  const repairStatusCards = ref<MetricCardItem[]>([]);
+  const repairOrderTotal = ref(0);
+  const repairTodayNewCount = ref(0);
+
+  const maintenanceData = ref<TaskViewData>(createEmptyTaskViewData());
+  const patrolData = ref<TaskViewData>(createEmptyTaskViewData());
 
   const deviceColumns = [
     { title: '设备状态', dataIndex: 'status', key: 'status' },
@@ -262,258 +318,50 @@
     { title: '占比', dataIndex: 'zb', key: 'zb' },
   ];
 
-  const deviceRows: TableRowItem[] = [
-    { key: 'device-1', status: '报废', num: 32, zb: '35%' },
-    { key: 'device-2', status: '停投', num: 2, zb: '5%' },
-    { key: 'device-3', status: '故障', num: 3, zb: '2%' },
-    { key: 'device-4', status: '正常运行', num: 23, zb: '87%' },
-    { key: 'device-5', status: '维修中', num: 10, zb: '20%' },
-  ];
-
-  const repairMetricCards: MetricCardItem[] = [
+  const repairMetricCards = computed<MetricCardItem[]>(() => [
     {
       title: '工单总数',
-      value: 10,
+      value: repairOrderTotal.value,
       icon: 'ant-design:file-text-outlined',
       color: '#f59e0b',
       softColor: 'rgba(245, 158, 11, 0.14)',
     },
     {
-      title: '待接单',
-      value: 12,
-      icon: 'ant-design:inbox-outlined',
-      color: '#ef4444',
-      softColor: 'rgba(239, 68, 68, 0.14)',
-    },
-    {
-      title: '待执行',
-      value: 10,
-      icon: 'ant-design:clock-circle-outlined',
+      title: '今日新增',
+      value: repairTodayNewCount.value,
+      icon: 'ant-design:plus-circle-outlined',
       color: '#3b82f6',
       softColor: 'rgba(59, 130, 246, 0.14)',
     },
-    {
-      title: '维修中',
-      value: 2,
-      icon: 'ant-design:tool-outlined',
-      color: '#14b8a6',
-      softColor: 'rgba(20, 184, 166, 0.14)',
-    },
-    {
-      title: '待验证',
-      value: 2,
-      icon: 'ant-design:safety-certificate-outlined',
-      color: '#8b5cf6',
-      softColor: 'rgba(139, 92, 246, 0.14)',
-    },
-    {
-      title: '已完成',
-      value: 2,
-      icon: 'ant-design:check-circle-outlined',
-      color: '#22c55e',
-      softColor: 'rgba(34, 197, 94, 0.14)',
-    },
-  ];
+    ...repairStatusCards.value,
+  ]);
 
-  const maintenancePeriodData: Record<
-    SectionPeriod,
-    {
-      chartData: PieChartItem[];
-      metricCards: MetricCardItem[];
-      progress: ProgressPanelItem;
-    }
-  > = {
-    今天: {
-      chartData: [
-        { name: '待执行', value: 6 },
-        { name: '保养中', value: 4 },
-        { name: '逾期', value: 2 },
-        { name: '未执行', value: 3 },
-        { name: '已完成', value: 15 },
-      ],
-      metricCards: [
-        { title: '待执行', value: 6, icon: 'ant-design:calendar-outlined', color: '#3b82f6', softColor: 'rgba(59, 130, 246, 0.14)' },
-        { title: '保养中', value: 4, icon: 'ant-design:dashboard-outlined', color: '#14b8a6', softColor: 'rgba(20, 184, 166, 0.14)' },
-        { title: '逾期', value: 2, icon: 'ant-design:alert-outlined', color: '#f59e0b', softColor: 'rgba(245, 158, 11, 0.14)' },
-        { title: '未执行', value: 3, icon: 'ant-design:minus-circle-outlined', color: '#ef4444', softColor: 'rgba(239, 68, 68, 0.14)' },
-        { title: '已完成', value: 15, icon: 'ant-design:carry-out-outlined', color: '#22c55e', softColor: 'rgba(34, 197, 94, 0.14)' },
-      ],
-      progress: {
-        percent: 75,
-        label: '任务完成率',
-        total: '任务总数: 30',
-        color: '#36cfc9',
-        softColor: 'rgba(54, 207, 201, 0.16)',
-      },
-    },
-    本周: {
-      chartData: [
-        { name: '待执行', value: 14 },
-        { name: '保养中', value: 9 },
-        { name: '逾期', value: 4 },
-        { name: '未执行', value: 6 },
-        { name: '已完成', value: 38 },
-      ],
-      metricCards: [
-        { title: '待执行', value: 14, icon: 'ant-design:calendar-outlined', color: '#3b82f6', softColor: 'rgba(59, 130, 246, 0.14)' },
-        { title: '保养中', value: 9, icon: 'ant-design:dashboard-outlined', color: '#14b8a6', softColor: 'rgba(20, 184, 166, 0.14)' },
-        { title: '逾期', value: 4, icon: 'ant-design:alert-outlined', color: '#f59e0b', softColor: 'rgba(245, 158, 11, 0.14)' },
-        { title: '未执行', value: 6, icon: 'ant-design:minus-circle-outlined', color: '#ef4444', softColor: 'rgba(239, 68, 68, 0.14)' },
-        { title: '已完成', value: 38, icon: 'ant-design:carry-out-outlined', color: '#22c55e', softColor: 'rgba(34, 197, 94, 0.14)' },
-      ],
-      progress: {
-        percent: 81,
-        label: '任务完成率',
-        total: '任务总数: 71',
-        color: '#2dd4bf',
-        softColor: 'rgba(45, 212, 191, 0.16)',
-      },
-    },
-    本月: {
-      chartData: [
-        { name: '待执行', value: 32 },
-        { name: '保养中', value: 18 },
-        { name: '逾期', value: 7 },
-        { name: '未执行', value: 12 },
-        { name: '已完成', value: 96 },
-      ],
-      metricCards: [
-        { title: '待执行', value: 32, icon: 'ant-design:calendar-outlined', color: '#3b82f6', softColor: 'rgba(59, 130, 246, 0.14)' },
-        { title: '保养中', value: 18, icon: 'ant-design:dashboard-outlined', color: '#14b8a6', softColor: 'rgba(20, 184, 166, 0.14)' },
-        { title: '逾期', value: 7, icon: 'ant-design:alert-outlined', color: '#f59e0b', softColor: 'rgba(245, 158, 11, 0.14)' },
-        { title: '未执行', value: 12, icon: 'ant-design:minus-circle-outlined', color: '#ef4444', softColor: 'rgba(239, 68, 68, 0.14)' },
-        { title: '已完成', value: 96, icon: 'ant-design:carry-out-outlined', color: '#22c55e', softColor: 'rgba(34, 197, 94, 0.14)' },
-      ],
-      progress: {
-        percent: 88,
-        label: '任务完成率',
-        total: '任务总数: 165',
-        color: '#14b8a6',
-        softColor: 'rgba(20, 184, 166, 0.16)',
-      },
-    },
-  };
+  const maintenanceTaskData = computed(() => clonePieData(maintenanceData.value.chartData));
+  const maintenanceMetricCards = computed(() => cloneMetricCards(maintenanceData.value.metricCards));
+  const maintenanceProgress = computed(() => ({ ...maintenanceData.value.progress }));
+  const patrolTaskData = computed(() => clonePieData(patrolData.value.chartData));
+  const patrolTaskRows = computed(() => cloneTableRows(patrolData.value.rows));
+  const patrolProgress = computed(() => ({ ...patrolData.value.progress }));
 
-  const patrolPeriodData: Record<
-    SectionPeriod,
-    {
-      chartData: PieChartItem[];
-      rows: TableRowItem[];
-      progress: ProgressPanelItem;
-    }
-  > = {
-    今天: {
-      chartData: [
-        { name: '未检', value: 4 },
-        { name: '异常', value: 1 },
-        { name: '正常', value: 15 },
-      ],
-      rows: [
-        { key: 'task-today-1', status: '待执行', num: 3, zb: '15%' },
-        { key: 'task-today-2', status: '执行中', num: 2, zb: '10%' },
-        { key: 'task-today-3', status: '逾期', num: 1, zb: '5%' },
-        { key: 'task-today-4', status: '未执行', num: 2, zb: '10%' },
-        { key: 'task-today-5', status: '已完成', num: 12, zb: '60%' },
-      ],
-      progress: {
-        percent: 86,
-        label: '任务完成率',
-        total: '任务总数: 20',
-        color: '#6c8cff',
-        softColor: 'rgba(108, 140, 255, 0.16)',
+  const repairChartOption = computed(() =>
+    createDonutChartOption({
+      totalText: `${repairOrderTotal.value}`,
+      titleText: `今日新增 ${repairTodayNewCount.value}`,
+      top: '34%',
+      valueFontSize: 28,
+      colors: ['#f59e0b', '#ef4444', '#3b82f6', '#14b8a6', '#8b5cf6', '#22c55e'],
+      formatter: '{b}: {c}',
+      legend: {
+        orient: 'vertical',
+        right: 10,
+        top: 60,
       },
-    },
-    本周: {
-      chartData: [
-        { name: '未检', value: 13 },
-        { name: '异常', value: 6 },
-        { name: '正常', value: 64 },
-      ],
-      rows: [
-        { key: 'task-week-1', status: '待执行', num: 8, zb: '10%' },
-        { key: 'task-week-2', status: '执行中', num: 6, zb: '7%' },
-        { key: 'task-week-3', status: '逾期', num: 4, zb: '5%' },
-        { key: 'task-week-4', status: '未执行', num: 9, zb: '11%' },
-        { key: 'task-week-5', status: '已完成', num: 56, zb: '67%' },
-      ],
-      progress: {
-        percent: 82,
-        label: '任务完成率',
-        total: '任务总数: 83',
-        color: '#5b8ff9',
-        softColor: 'rgba(91, 143, 249, 0.16)',
-      },
-    },
-    本月: {
-      chartData: [
-        { name: '未检', value: 28 },
-        { name: '异常', value: 15 },
-        { name: '正常', value: 187 },
-      ],
-      rows: [
-        { key: 'task-month-1', status: '待执行', num: 18, zb: '8%' },
-        { key: 'task-month-2', status: '执行中', num: 12, zb: '5%' },
-        { key: 'task-month-3', status: '逾期', num: 9, zb: '4%' },
-        { key: 'task-month-4', status: '未执行', num: 21, zb: '9%' },
-        { key: 'task-month-5', status: '已完成', num: 170, zb: '74%' },
-      ],
-      progress: {
-        percent: 89,
-        label: '任务完成率',
-        total: '任务总数: 230',
-        color: '#4f46e5',
-        softColor: 'rgba(79, 70, 229, 0.14)',
-      },
-    },
-  };
-
-  const currentMaintenanceDataset = computed(() => maintenancePeriodData[activeMaintenancePeriod.value]);
-  const currentPatrolDataset = computed(() => patrolPeriodData[activePatrolPeriod.value]);
-
-  const maintenanceTaskData = computed(() => clonePieData(currentMaintenanceDataset.value.chartData));
-  const maintenanceMetricCards = computed(() => cloneMetricCards(currentMaintenanceDataset.value.metricCards));
-  const maintenanceProgress = computed(() => ({ ...currentMaintenanceDataset.value.progress }));
-  const patrolTaskData = computed(() => clonePieData(currentPatrolDataset.value.chartData));
-  const patrolTaskRows = computed(() => cloneTableRows(currentPatrolDataset.value.rows));
-  const patrolProgress = computed(() => ({ ...currentPatrolDataset.value.progress }));
-  const maintenanceTotal = computed(() => getPieTotal(maintenanceTaskData.value));
-  const patrolDeviceTotal = computed(() => getPieTotal(patrolTaskData.value));
-
-  const repairChartOption = {
-    legend: {
-      orient: 'vertical',
-      right: 10,
-      top: 60,
-    },
-    graphic: [
-      {
-        type: 'text',
-        left: 'center',
-        top: '34%',
-        z: 10,
-        style: {
-          text: ['{value|5台}', '{title|今日新增 2}'].join('\n'),
-          textAlign: 'center',
-          rich: {
-            title: {
-              fontSize: 15,
-              color: '#7e8ca5',
-              padding: [8, 0, 0, 0],
-            },
-            value: {
-              fontSize: 28,
-              color: '#182538',
-              fontWeight: 'bold',
-            },
-          },
-        },
-      },
-    ],
-  };
+    })
+  );
 
   const maintenanceChartOption = computed(() =>
     createDonutChartOption({
-      totalText: `${maintenanceTotal.value}台`,
+      totalText: `${maintenanceData.value.taskTotal}`,
       titleText: '任务总量',
       top: '39%',
       valueFontSize: 26,
@@ -524,14 +372,172 @@
 
   const patrolChartOption = computed(() =>
     createDonutChartOption({
-      totalText: `${patrolDeviceTotal.value}`,
+      totalText: `${patrolData.value.deviceTotal}`,
       titleText: '设备总数',
       top: '35%',
       valueFontSize: 28,
-      colors: ['#4fcce4', '#ff7670', '#87d590'],
+      colors: ['#4fcce4', '#ff7670', '#87d590', '#5685cf', '#ffd16e'],
       formatter: '{b}: {c}',
     })
   );
+
+  onMounted(() => {
+    loadOverviewData();
+    loadMaintenanceTask(activeMaintenancePeriod.value);
+    loadPatrolTask(activePatrolPeriod.value);
+  });
+
+  watch(activeMaintenancePeriod, (period) => {
+    loadMaintenanceTask(period);
+  });
+
+  watch(activePatrolPeriod, (period) => {
+    loadPatrolTask(period);
+  });
+
+  async function loadOverviewData() {
+    withLoading(async () => {
+      try {
+        const [deviceResult, repairResult] = await Promise.all([getWorkbenchDeviceStatus(), getWorkbenchTodayRepair()]);
+        applyDeviceStatus(deviceResult);
+        applyRepairStatus(repairResult);
+      } catch (error) {
+        applyDeviceStatus();
+        applyRepairStatus();
+      }
+    });
+  }
+
+  async function loadMaintenanceTask(period: SectionPeriod) {
+    withLoading(async () => {
+      try {
+        const data = await getWorkbenchMaintenanceTask(periodValueMap[period]);
+        maintenanceData.value = createTaskViewData(data, 'maintenance');
+      } catch (error) {
+        maintenanceData.value = createEmptyTaskViewData();
+      }
+    });
+  }
+
+  async function loadPatrolTask(period: SectionPeriod) {
+    withLoading(async () => {
+      try {
+        const data = await getWorkbenchInspectionTask(periodValueMap[period]);
+        patrolData.value = createTaskViewData(data, 'inspection');
+      } catch (error) {
+        patrolData.value = createEmptyTaskViewData();
+      }
+    });
+  }
+
+  async function withLoading(task: () => Promise<void>) {
+    loadingCount.value += 1;
+    try {
+      await task();
+    } finally {
+      loadingCount.value = Math.max(loadingCount.value - 1, 0);
+    }
+  }
+
+  function applyDeviceStatus(data?: { statuses?: WorkbenchStatusItem[]; total?: number }) {
+    const statuses = toStatusList(data?.statuses);
+    deviceData.value = statusesToPieData(statuses);
+    deviceRows.value = statusesToRows(statuses, 'device');
+    deviceTotal.value = toNumber(data?.total);
+  }
+
+  function applyRepairStatus(data?: WorkbenchRepairResult) {
+    const statuses = toStatusList(data?.statuses);
+    baoxiuData.value = statusesToPieData(statuses);
+    repairStatusCards.value = statusesToMetricCards(statuses);
+    repairOrderTotal.value = toNumber(data?.orderTotal);
+    repairTodayNewCount.value = toNumber(data?.todayNewCount);
+  }
+
+  function createTaskViewData(data: WorkbenchTaskResult | undefined, type: 'maintenance' | 'inspection'): TaskViewData {
+    const taskStatuses = toStatusList(data?.taskStatuses);
+    const deviceStatuses = toStatusList(data?.deviceStatuses);
+    const chartStatuses = type === 'inspection' && deviceStatuses.length > 0 ? deviceStatuses : taskStatuses;
+    const taskTotal = toNumber(data?.taskTotal);
+    const deviceTotal = toNumber(data?.deviceTotal);
+    const progressColor = type === 'maintenance' ? '#36cfc9' : '#6c8cff';
+    const progressSoftColor = type === 'maintenance' ? 'rgba(54, 207, 201, 0.16)' : 'rgba(108, 140, 255, 0.16)';
+
+    return {
+      chartData: statusesToPieData(chartStatuses),
+      rows: statusesToRows(taskStatuses, type),
+      metricCards: statusesToMetricCards(taskStatuses),
+      progress: {
+        percent: toPercentNumber(data?.completionRate),
+        label: '任务完成率',
+        total: `任务总数: ${taskTotal}`,
+        color: progressColor,
+        softColor: progressSoftColor,
+      },
+      taskTotal,
+      deviceTotal,
+    };
+  }
+
+  function createEmptyTaskViewData(): TaskViewData {
+    return {
+      chartData: [],
+      rows: [],
+      metricCards: [],
+      progress: { ...emptyProgress },
+      taskTotal: 0,
+      deviceTotal: 0,
+    };
+  }
+
+  function toStatusList(statuses?: WorkbenchStatusItem[]) {
+    return Array.isArray(statuses) ? statuses.filter((item) => Boolean(item?.statusName)) : [];
+  }
+
+  function statusesToPieData(statuses: WorkbenchStatusItem[]): PieChartItem[] {
+    return statuses.map((item, index) => ({
+      name: getStatusName(item),
+      value: toNumber(item.count),
+    }));
+  }
+
+  function statusesToRows(statuses: WorkbenchStatusItem[], prefix: string): TableRowItem[] {
+    return statuses.map((item, index) => ({
+      key: `${prefix}-${item.statusCode ?? index}`,
+      status: getStatusName(item),
+      num: toNumber(item.count),
+      zb: formatPercent(item.percentage),
+    }));
+  }
+
+  function statusesToMetricCards(statuses: WorkbenchStatusItem[]): MetricCardItem[] {
+    return statuses.map((item, index) => {
+      const style = metricPalette[index % metricPalette.length];
+      return {
+        title: getStatusName(item),
+        value: toNumber(item.count),
+        ...style,
+      };
+    });
+  }
+
+  function getStatusName(item: WorkbenchStatusItem) {
+    return item.statusName || '';
+  }
+
+  function toNumber(value: unknown) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  }
+
+  function toPercentNumber(value: unknown) {
+    return Math.max(0, Math.min(100, Math.round(toNumber(value))));
+  }
+
+  function formatPercent(value: unknown) {
+    const num = toNumber(value);
+    return `${Number.isInteger(num) ? num : num.toFixed(2)}%`;
+  }
 
   function getStatusColor(colorMap: Record<string, string>, status: string) {
     return colorMap[status] || '#94a3b8';
@@ -549,10 +555,6 @@
     return data.map((item) => ({ ...item }));
   }
 
-  function getPieTotal(data: PieChartItem[]) {
-    return data.reduce((sum, item) => sum + Number(item.value || 0), 0);
-  }
-
   function createDonutChartOption({
     totalText,
     titleText,
@@ -560,6 +562,7 @@
     valueFontSize,
     colors,
     formatter,
+    legend,
   }: {
     totalText: string;
     titleText: string;
@@ -567,12 +570,13 @@
     valueFontSize: number;
     colors: string[];
     formatter: string;
+    legend?: Record<string, unknown>;
   }) {
     return {
       tooltip: {
         formatter: '{b} ({c})',
       },
-      legend: {
+      legend: legend || {
         bottom: 0,
       },
       graphic: [
@@ -701,6 +705,28 @@
     flex: none;
   }
 
+  .table-panel {
+    min-height: 280px;
+  }
+
+  .status-table {
+    min-height: 280px;
+  }
+
+  .status-table :deep(.ant-table) {
+    min-height: 280px;
+    border-radius: 18px;
+    background: #fff;
+  }
+
+  .status-table :deep(.ant-table-container) {
+    min-height: 280px;
+  }
+
+  .status-table :deep(.ant-table-tbody > tr.ant-table-placeholder > td) {
+    height: 232px;
+  }
+
   .metric-card {
     border-radius: 16px;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -717,6 +743,44 @@
     box-shadow:
       0 18px 32px rgba(15, 23, 42, 0.08),
       inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+  }
+
+  .metric-grid {
+    min-height: 120px;
+    align-content: flex-start;
+  }
+
+  .metric-grid--repair,
+  .metric-grid--task {
+    min-height: 280px;
+  }
+
+  .empty-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+    border-radius: 16px;
+    color: #94a3b8;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow:
+      0 12px 28px rgba(15, 23, 42, 0.06),
+      inset 0 0 0 1px rgba(148, 163, 184, 0.1);
+  }
+
+  .empty-panel__text {
+    margin-top: 12px;
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .empty-panel--metric {
+    min-height: 108px;
+  }
+
+  .empty-panel--metric .empty-panel__text {
+    margin-top: 8px;
   }
 
   .metric-card__content {

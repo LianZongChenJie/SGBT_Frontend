@@ -1,17 +1,50 @@
 import { defHttp } from '/@/utils/http/axios';
-enum Api {
-  pointDataForToDayApi = '/bems/dataQueue/getPointDataForToDay',
-  deviceRunStateStatisticsApi = '/bems/device/deviceRunStateStatistics',
-  getTokenApi = '/third/login/investmentPromotionSystem',
+
+export type WorkbenchPeriod = 'today' | 'week' | 'month';
+
+export interface WorkbenchStatusItem {
+  count?: number;
+  percentage?: number;
+  statusCode?: number;
+  statusName?: string;
 }
-/**
- * 获取项目名称等信息
- * @param params
- */
-export const getPointDataForToDay = () => defHttp.get({ url: Api.pointDataForToDayApi, params: { configPath: 'workbench:energy:electricity' } });
-/**
- * 获取项目名称等信息
- * @param params
- */
-export const getDeviceRunStateStatistics = () => defHttp.get({ url: Api.deviceRunStateStatisticsApi });
-export const getToken = () => defHttp.post({ url: Api.getTokenApi });
+
+export interface WorkbenchDeviceStatusResult {
+  statuses?: WorkbenchStatusItem[];
+  total?: number;
+}
+
+export interface WorkbenchTaskResult {
+  bizType?: number;
+  completionRate?: number;
+  deviceStatuses?: WorkbenchStatusItem[];
+  deviceTotal?: number;
+  endTime?: string;
+  period?: WorkbenchPeriod;
+  startTime?: string;
+  taskStatuses?: WorkbenchStatusItem[];
+  taskTotal?: number;
+}
+
+export interface WorkbenchRepairResult {
+  orderTotal?: number;
+  statuses?: WorkbenchStatusItem[];
+  todayNewCount?: number;
+}
+
+enum Api {
+  deviceStatusApi = '/operation/workbench/deviceStatus',
+  inspectionTaskApi = '/operation/workbench/inspectionTask',
+  maintenanceTaskApi = '/operation/workbench/maintenanceTask',
+  todayRepairApi = '/operation/workbench/todayRepair',
+}
+
+export const getWorkbenchDeviceStatus = () => defHttp.get<WorkbenchDeviceStatusResult>({ url: Api.deviceStatusApi });
+
+export const getWorkbenchInspectionTask = (period: WorkbenchPeriod) =>
+  defHttp.get<WorkbenchTaskResult>({ url: Api.inspectionTaskApi, params: { period } });
+
+export const getWorkbenchMaintenanceTask = (period: WorkbenchPeriod) =>
+  defHttp.get<WorkbenchTaskResult>({ url: Api.maintenanceTaskApi, params: { period } });
+
+export const getWorkbenchTodayRepair = () => defHttp.get<WorkbenchRepairResult>({ url: Api.todayRepairApi });

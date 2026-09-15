@@ -9,14 +9,15 @@
     >
       <a-form-item label="用户名" required>
         <a-select
-          v-model:value="selectedUserId"
+          v-model:value="selectedUserIds"
           allow-clear
+          mode="multiple"
           show-search
           :filter-option="filterUserOption"
           :loading="userLoading"
           :not-found-content="userNotFoundContent"
           :options="userOptions"
-          placeholder="请选择系统用户"
+          placeholder="请选择系统用户（可多选）"
         />
       </a-form-item>
     </a-form>
@@ -30,7 +31,7 @@
   import { listNoCareTenant } from '/@/views/system/user/user.api';
   import { formSchema } from './demo.data';
   import { saveOrUpdateDemo, getDemoById, buildEmployeePayload } from './demo.api';
-  import { buildEmployeeCreatePayload, type SystemUserRecord } from './employeePayload';
+  import { buildEmployeeBatchCreatePayload, type SystemUserRecord } from './employeePayload';
 
   interface UserSelectOption extends SystemUserRecord {
     label: string;
@@ -41,7 +42,7 @@
   // 声明Emits
   const emit = defineEmits(['register', 'success']);
   const isUpdate = ref(true);
-  const selectedUserId = ref<string>();
+  const selectedUserIds = ref<string[]>([]);
   const userOptions = ref<UserSelectOption[]>([]);
   const userLoading = ref(false);
   const userLoadError = ref(false);
@@ -108,7 +109,7 @@
   const [registerModal, { setModalProps, closeModal }] = useModalInner(async (data) => {
     setModalProps({ confirmLoading: false, showOkBtn: !props.isDisabled });
     isUpdate.value = !!data?.isUpdate;
-    selectedUserId.value = undefined;
+    selectedUserIds.value = [];
 
     if (unref(isUpdate) && data?.record?.id) {
       await nextTick();
@@ -134,12 +135,14 @@
         const values = await validate();
         payload = buildEmployeePayload(values);
       } else {
-        const selectedUser = userOptions.value.find((user) => user.value === selectedUserId.value);
-        if (!selectedUser) {
+        const selectedUsers = selectedUserIds.value
+          .map((userId) => userOptions.value.find((user) => user.value === userId))
+          .filter((user): user is UserSelectOption => !!user);
+        if (!selectedUsers.length || selectedUsers.length !== selectedUserIds.value.length) {
           createMessage.warning(userLoadError.value ? '系统用户加载失败，请重新打开弹框后重试' : '请选择系统用户');
           return;
         }
-        payload = buildEmployeeCreatePayload(selectedUser);
+        payload = buildEmployeeBatchCreatePayload(selectedUsers);
       }
       setModalProps({ confirmLoading: true });
       //提交表单

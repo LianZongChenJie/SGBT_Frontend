@@ -1,7 +1,7 @@
 <template>
-  <AnalysisHome />
+  <WorkbenchChart />
 </template>
 
 <script lang="ts" setup>
-  import AnalysisHome from '../Analysis/index.vue';
+  import WorkbenchChart from '../Analysis/homePage/IndexChart.vue';
 </script>

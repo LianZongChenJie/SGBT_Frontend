@@ -23,9 +23,17 @@
       <template #action="{ record }">
         <TableAction :actions="getActions(record)" />
       </template>
+      <template #qrcode>
+        <a-tooltip title="点击查看并打印二维码">
+          <button class="qrcode-trigger" type="button" aria-label="查看下载二维码" @click="handleQrCodePreview">
+            <QrCode :value="APP_DOWNLOAD_URL" :width="48" :options="{ margin: 1 }" />
+          </button>
+        </a-tooltip>
+      </template>
     </BasicTable>
 
     <DemoModal @register="registerModal" @success="reload" :isDisabled="isDisabled" />
+    <QrCodeModal :download-url="APP_DOWNLOAD_URL" @register="registerQrCodeModal" />
   </div>
 </template>
 
@@ -33,8 +41,10 @@
   import { computed, ref } from 'vue';
   import { BasicTable, TableAction, useTable } from '/@/components/Table';
   import { useModal } from '/@/components/Modal';
+  import { QrCode } from '/@/components/Qrcode';
   import { usePermission } from '/@/hooks/web/usePermission';
   import DemoModal from './DemoModal.vue';
+  import QrCodeModal from './QrCodeModal.vue';
   import { batchDeleteDemo, deleteDemo, getDemoList } from './demo.api';
   import { columns, searchFormSchema } from './demo.data';
 
@@ -42,6 +52,8 @@
   const checkedKeys = ref<Array<string | number>>([]);
   const isDisabled = ref(false);
   const [registerModal, { openModal }] = useModal();
+  const [registerQrCodeModal, { openModal: openQrCodeModal }] = useModal();
+  const APP_DOWNLOAD_URL = 'http://192.168.1.230/upFiles/__UNI__465858C__20260916160859.apk';
 
   const [registerTable, { reload }] = useTable({
     title: 'App版本管理',
@@ -118,6 +130,10 @@
     });
   }
 
+  function handleQrCodePreview() {
+    openQrCodeModal(true);
+  }
+
   async function handleDelete(record) {
     await deleteDemo({ id: record.id }, reload);
   }
@@ -133,3 +149,13 @@
     });
   }
 </script>
+
+<style lang="less" scoped>
+  .qrcode-trigger {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+</style>

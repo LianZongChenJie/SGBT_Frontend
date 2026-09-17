@@ -44,6 +44,13 @@ export const columns: BasicColumn[] = [
       return text == 1 ? '有效' : text == 0 ? '无效' : '';
     },
   },
+  {
+    title: '二维码',
+    align: 'center',
+    dataIndex: 'qrcode',
+    width: 88,
+    slots: { customRender: 'qrcode' },
+  },
 ];
 
 export const searchFormSchema: FormSchema[] = [

@@ -1,6 +1,6 @@
 <template>
   <div class="monitor-view">
-    <!-- ===== 第一行：统计卡片 ===== -->
+    <!-- ===== 第一行：统计卡片（暂时隐藏，后续如需恢复，把下面整段注释去掉即可） =====
     <div class="stats-row">
       <StatCard
         v-for="(item, index) in statCards"
@@ -12,6 +12,7 @@
         :icon="item.icon"
       />
     </div>
+    -->
 
     <!-- ===== 实时监控画面 ===== -->
     <div class="card">

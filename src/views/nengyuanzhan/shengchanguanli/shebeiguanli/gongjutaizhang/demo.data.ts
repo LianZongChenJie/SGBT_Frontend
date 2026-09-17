@@ -68,6 +68,7 @@ export const columns: BasicColumn[] = [
       if (text == 2) return '待维修';
       if (text == 3) return '维修中';
       if (text == 4) return '入库';
+      if (text == 5) return '使用中';
       return '-';
     },
   },
@@ -333,6 +334,7 @@ export const formSchema: FormSchema[] = [
         { label: '待维修', value: 2 },
         { label: '维修中', value: 3 },
         { label: '入库', value: 4 },
+        { label: '使用中', value: 5 },
       ],
     },
   },

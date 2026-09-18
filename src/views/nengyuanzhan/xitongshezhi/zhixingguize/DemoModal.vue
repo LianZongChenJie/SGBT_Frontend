@@ -1,5 +1,5 @@
 <template>
-  <BasicModal v-bind="$attrs" @register="registerModal" :title="title" @ok="handleSubmit" width="50%">
+  <BasicModal v-bind="$attrs" @register="registerModal" :title="title" @ok="handleSubmit" width="1200px">
     <a-form ref="formRef" :model="formState" :rules="rules" :label-col="labelCol" :wrapper-col="wrapperCol" class="form mr3">
       <a-form-item ref="ruleName" label="规则名称" name="ruleName">
         <a-input v-model:value="formState.ruleName" placeholder="请输入规则名称" />
@@ -238,7 +238,7 @@
                   >
                     <div class="flex">
                       <span>{{ list.monthValue }}月</span>
-                      <div class="">
+                      <div class="quarter-time-fields">
                         <span class="ml3 mr1">开始时间</span>
                         <a-select
                           :options="riqiList"
@@ -283,7 +283,7 @@
                   >
                     <div class="flex">
                       <span>{{ list.monthValue }}月</span>
-                      <div class="">
+                      <div class="quarter-time-fields">
                         <span class="ml3 mr1">开始时间</span>
                         <a-select allow-clear placeholder="日" v-model:value="list.startDay" style="width: 120px; display: inline-block" class="mr1">
                           <a-select-option v-for="(list, i) in riqiList" :key="i" :value="list.value">{{ list.label }} </a-select-option>
@@ -325,7 +325,7 @@
                   >
                     <div class="flex">
                       <span>{{ list.monthValue }}月</span>
-                      <div class="">
+                      <div class="quarter-time-fields">
                         <span class="ml3 mr1">开始时间</span>
                         <a-select allow-clear placeholder="日" v-model:value="list.startDay" style="width: 120px; display: inline-block" class="mr1">
                           <a-select-option v-for="(list, i) in riqiList" :key="i" :value="list.value">{{ list.label }} </a-select-option>
@@ -365,7 +365,7 @@
                   >
                     <div class="flex">
                       <span>{{ list.monthValue }}月</span>
-                      <div class="">
+                      <div class="quarter-time-fields">
                         <span class="ml3 mr1">开始时间</span>
                         <a-select allow-clear placeholder="日" v-model:value="list.startDay" style="width: 120px; display: inline-block" class="mr1">
                           <a-select-option v-for="(list, i) in riqiList" :key="i" :value="list.value">{{ list.label }} </a-select-option>
@@ -1605,6 +1605,13 @@
     :deep(.ant-tabs-tab) {
       padding: 5px 0;
     }
+  }
+
+  .quarter-time-fields {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
 
   :deep(.jeecg-basic-table .ant-table-wrapper) {

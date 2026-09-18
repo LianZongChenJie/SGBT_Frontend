@@ -88,8 +88,8 @@ onMounted(async () => {
 // 获取tabs配置列表
 const getTabsList = async () => {
   let res = await getTabsDataApi();
-  tabsList.value = [...res];
-  configId.value = tabsList.value.find((itme, index) => index + 1 === activeKey.value).id;
+  tabsList.value = [...res].filter((item) => item.name === '电能耗分析');
+  configId.value = tabsList.value.find((itme, index) => index + 1 === activeKey.value)?.id;
 };
 
 // 切换tabs

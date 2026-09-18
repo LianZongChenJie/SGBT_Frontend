@@ -115,7 +115,7 @@
 
 <script setup lang="ts">
 import { ref, watch, reactive, onMounted, onUnmounted } from 'vue';
-import { getBarChartDataApi } from '../Standardized.api';
+import { getSecondFloorElectricAlarmApi } from '../Standardized.api';
 import { message } from 'ant-design-vue';
 import type { UnwrapRef } from 'vue';
 
@@ -137,7 +137,7 @@ const props = defineProps({
 const activeKey = ref('2');
 
 const formRef = ref();
-const exceptionPrompt = ref([]);
+const exceptionPrompt = ref<any[]>([]);
 
 const formState = ref<any>({
   analysisTime: [],
@@ -186,18 +186,11 @@ let timeout: any = null;
 
 // 获取异常提示信息
 const getExceptionPromptData = async () => {
-  let params = {
-    pointId: props.point ? props.point : 5,
-    dateType: formState.value.dateType ? formState.value.dateType : 'day',
-    baseStartDate: formState.value.referenceTime[0] ? formState.value.referenceTime[0] : '2025-03-11',
-    baseEndDate: formState.value.referenceTime[0] ? formState.value.referenceTime[1] : '2025-03-15',
-    startDate: formState.value.analysisTime[0] ? formState.value.analysisTime[0] : '2025-04-11',
-    endDate: formState.value.analysisTime[0] ? formState.value.analysisTime[1] : '2025-04-15',
-    increase: formState.value.increase ? formState.value.increase : '0.1',
-    increaseContent: formState.value.increaseContent ? formState.value.increase : '{0}较基准超过10%',
-  };
-  let res = await getBarChartDataApi(params);
-  exceptionPrompt.value = res.errorMessage;
+  const res = await getSecondFloorElectricAlarmApi();
+  const list = Array.isArray(res) ? res : [];
+  exceptionPrompt.value = list.map((item: any) =>
+    typeof item === 'string' ? item : item.errorMessage ?? item.alarmContent ?? item.content ?? ''
+  );
 };
 
 // 将 YYYY-MM-DD 字符串转换为 Date 对象
@@ -300,7 +293,7 @@ onMounted(async () => {
     formState.value.dateType = 'day';
   }
   props.searchChartData(formState.value);
-  // await getExceptionPromptData();
+  await getExceptionPromptData();
 });
 
 // 组件卸载时清除定时器

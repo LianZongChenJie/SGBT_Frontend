@@ -10,6 +10,7 @@ enum Api {
   getTabsDataApi = '/bems/energyAnalysis/config/list',
   getChartsListApi = '/bems/energyAnalysis/chart/list',
   getBenchmarkListApi = '/bems/energyAnalysis/benchmark/list',
+  getSecondFloorElectricAlarmApi = '/bems/alarm/record/listBySecondFloorElectric',
 }
 
 /**
@@ -46,3 +47,8 @@ export const getChartsListApi = (params) => defHttp.get({ url: Api.getChartsList
  * 获取charts配置列表
  */
 export const getBenchmarkListApi = (params) => defHttp.get({ url: Api.getBenchmarkListApi, params }, { joinParamsToUrl: true });
+
+/**
+ * 获取二层用电耗能异常提示列表
+ */
+export const getSecondFloorElectricAlarmApi = () => defHttp.get({ url: Api.getSecondFloorElectricAlarmApi });

@@ -528,6 +528,11 @@ const onSubmit = async () => {
     message.error('请添加设备');
     return;
   }
+  // 通知对象未选择时传空字符串
+  const noticeUser = formState.noticeUser;
+  if (noticeUser === null || noticeUser === undefined || (Array.isArray(noticeUser) && noticeUser.length === 0)) {
+    formState.noticeUser = '';
+  }
   formRef.value
     .validate()
     .then(async () => {

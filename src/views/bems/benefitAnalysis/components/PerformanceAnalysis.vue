@@ -48,7 +48,7 @@
   });
 
   const treeData = ref<any[]>([]);
-  const checkedKeys = ref<{ checked: string[] | number[]; halfChecked: string[] | number[] }>({
+  const checkedKeys = ref<any>({
     checked: [],
     halfChecked: [],
   });
@@ -60,13 +60,17 @@
 
   const findEnergyFlowType = async () => {
     const result = await energyFlowType();
-    items.value = result.map((item) => ({
+    // 过滤只保留 text 为 "空间" 的数据
+    const filteredResult = result.filter((item) => item.text === '空间用电数据');
+    items.value = filteredResult.map((item) => ({
       label: item.label,
       key: item.value,
     }));
-    energyFlowTreeType.value.type = result[0].value;
-    energyFlowTreeType.value.name = result[0].label;
-    current.value.push(result[0].value);
+    if (filteredResult.length > 0) {
+      energyFlowTreeType.value.type = filteredResult[0].value;
+      energyFlowTreeType.value.name = filteredResult[0].label;
+      current.value.push(filteredResult[0].value);
+    }
   };
 
   const menuClick: MenuProps['onClick'] = ({ item }) => {
@@ -75,6 +79,36 @@
     checkedKeys.value = [];
     findTreeData();
   };
+  // 递归获取指定节点及其所有后代节点的 id
+  const getNodeAndDescendantIds = (nodes: any[], targetId: string | number): any[] => {
+    const resultIds: any[] = [];
+    const collectIds = (node: any) => {
+      if (node?.id === undefined || node?.id === null) {
+        return;
+      }
+      resultIds.push(node.id);
+      if (node.children && node.children.length > 0) {
+        node.children.forEach((child: any) => collectIds(child));
+      }
+    };
+    const findAndCollect = (list: any[]): boolean => {
+      for (const node of list) {
+        if (node.id === targetId) {
+          collectIds(node);
+          return true;
+        }
+        if (node.children && node.children.length > 0) {
+          if (findAndCollect(node.children)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+    findAndCollect(nodes);
+    return resultIds;
+  };
+
   const findTreeData = async () => {
     checkedKeys.value = {
       checked: [],
@@ -83,7 +117,8 @@
     if (energyFlowTreeType.value.type != '') {
       treeData.value = await energyFlowTree({ type: energyFlowTreeType.value.type });
       if (treeData.value.length > 0) {
-        checkedKeys.value.checked.push(treeData.value[0].id);
+        // checkStrictly 模式下父子不联动，需手动补全第一个节点及其所有子节点
+        checkedKeys.value.checked.push(...getNodeAndDescendantIds(treeData.value, treeData.value[0].id));
         findData();
       }
     }
@@ -203,12 +238,10 @@
       chartInstance.value = echarts.init(chartDom);
     }
     const today = new Date();
-    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
-    const year = lastMonth.getFullYear();
-    const month = String(lastMonth.getMonth() + 1).padStart(2, '0');
-    const day = String(lastMonth.getDate()).padStart(2, '0');
-    // 设置日期为上月当前日期
-    // date.value = new Date().toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    // 设置日期为当月当前日期
     date.value = `${year}-${month}-${day}`;
     await findEnergyFlowType();
     await findTreeData();

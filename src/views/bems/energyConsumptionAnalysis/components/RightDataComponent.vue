@@ -4,7 +4,7 @@
       <div class="title">
         耗能异常提示
       </div>
-      <div class="info-box">
+      <div class="info-box list-box">
         <!-- <p>总能耗</p> -->
         <p
           v-for="(item,index) in exceptionPrompt"
@@ -335,8 +335,13 @@ defineExpose({
     height: 32%;
     background-color: #fff;
     padding: 0 20px;
+    box-sizing: border-box;
+    border: 1px solid #d9d9d9;
+    display: flex;
+    flex-direction: column;
     .title {
       height: 40px;
+      flex-shrink: 0;
       text-align: center;
       font-size: 18px;
       font-weight: 600;
@@ -345,9 +350,20 @@ defineExpose({
     }
     .info-box {
       p {
-        font-size: 16px;
+        font-size: 14px;
         color: #5c5b5b;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        padding: 6px 10px;
+        margin: 0 0 8px 0;
       }
+    }
+    // 异常提示列表：高度受盒子限制，内容超出时滚动查看
+    .list-box {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
     }
   }
 

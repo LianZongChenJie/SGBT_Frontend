@@ -8,7 +8,8 @@
         <CostAnalysisItem :title="'电'" :pieId="'electricityPie'" :barId="'electricityBar'" :total-suffix="'KW.H'" :category="'electricity'" />
         <div class="divider-item"></div>
       </div>
-      <div class="analysis-item water-analysis">
+      <!-- 暂时隐藏：水、热、表格区域 -->
+      <!-- <div class="analysis-item water-analysis">
         <CostAnalysisItem :title="'水'" :pieId="'waterPie'" :barId="'waterBar'" :total-suffix="'吨'" :category="'electricity'" />
         <div class="divider-item"></div>
       </div>
@@ -16,7 +17,7 @@
         <CostAnalysisItem :title="'热'" :pieId="'heatPie'" :barId="'heatBar'" :total-suffix="'kcar'" :category="'electricity'" />
         <div class="divider-item"></div>
       </div>
-      <div class="analysis-item table-box"> </div>
+      <div class="analysis-item table-box"> </div> -->
     </div>
     <ConfigurationModal />
   </div>

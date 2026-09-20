@@ -154,14 +154,9 @@
     if (energyFlowTreeType.value.type != '') {
       treeData.value = await energyFlowTree({ type: energyFlowTreeType.value.type });
       if (treeData.value.length > 0) {
-        if (isCascade.value) {
-          // 级联模式：选中第一个节点及其直接子节点
-          const idArr = getNodeAndChildrenIds(treeData.value, treeData.value[0].key);
-          checkedKeys.value.push(...idArr);
-        } else {
-          // 非级联模式：只选中第一个节点
-          checkedKeys.value.push(treeData.value[0].key);
-        }
+        // checkStrictly 模式下父子不联动，默认选中第一个节点及其所有子节点
+        const idArr = getNodeAndDescendantIds(treeData.value, treeData.value[0].key);
+        checkedKeys.value.push(...idArr);
         findData();
       }
     }
@@ -544,15 +539,9 @@
 
     // 重新初始化选择
     if (treeData.value.length > 0) {
-      if (isCascade.value) {
-        // 级联模式：选中第一个节点及其直接子节点
-        const idArr = getNodeAndChildrenIds(treeData.value, treeData.value[0].key);
-        console.log('idArr', idArr);
-        checkedKeys.value.push(...idArr);
-      } else {
-        // 非级联模式：只选中第一个节点
-        checkedKeys.value.push(treeData.value[0].key);
-      }
+      // 选中第一个节点及其所有子节点（与默认加载保持一致）
+      const idArr = getNodeAndDescendantIds(treeData.value, treeData.value[0].key);
+      checkedKeys.value.push(...idArr);
 
       // 重新查询数据
       await findData();

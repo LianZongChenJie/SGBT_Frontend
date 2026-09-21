@@ -80,6 +80,10 @@ export default ({ command, mode }: ConfigEnv): UserConfig => {
       port: VITE_PORT,
       // Load proxy configuration from .env
       proxy: createProxy(VITE_PROXY),
+      // 忽略被占用导致 EBUSY 的文件(如 dist.zip)
+      watch: {
+        ignored: ['**/dist.zip', '**/*.zip'],
+      },
       // 合并 server 配置
       ...serverOptions,
     },

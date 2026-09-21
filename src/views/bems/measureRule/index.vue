@@ -269,13 +269,18 @@
 
   const findEnergyFlowType = async () => {
     const result = await energyFlowType();
-    items.value = result.map((item) => ({
+    // 过滤只保留 text 为"空间用电数据"的字典项
+    const filteredResult = result.filter((item) => (item.text ?? item.label) === '空间用电数据');
+    items.value = filteredResult.map((item) => ({
       label: item.label,
       key: item.value,
     }));
-    energyFlowTreeType.value.type = result[0].value;
-    energyFlowTreeType.value.name = result[0].label;
-    current.value.push(result[0].value);
+    if (filteredResult.length === 0) {
+      return;
+    }
+    energyFlowTreeType.value.type = filteredResult[0].value;
+    energyFlowTreeType.value.name = filteredResult[0].label;
+    current.value.push(filteredResult[0].value);
   };
 
   // 获取所有下拉数据

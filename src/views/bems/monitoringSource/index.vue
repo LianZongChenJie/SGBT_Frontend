@@ -2,8 +2,8 @@
   <div class="monitoring-source-main-box">
     <!-- 顶部统计卡片（数据来自 /bems/deviceStatistis/statistics 接口） -->
     <div class="stats-row">
-      <StatCard label="设备数量" :value="statData.deviceCount" change-text="" color="blue" :icon="DeviceIcon" />
-      <StatCard label="设备类别数量" :value="statData.categorycount" change-text="" color="green" :icon="CategoryIcon" />
+      <StatCard label="设备数量" :value="statData.deviceCount1" change-text="" color="blue" :icon="DeviceIcon" />
+      <StatCard label="仪表数量" :value="statData.deviceCount2" change-text="" color="green" :icon="CategoryIcon" />
       <StatCard label="采集点位数" :value="statData.attributeCount" change-text="" color="orange" :icon="PointIcon" />
       <StatCard label="好的数据数" :value="statData.goodQualityCount" change-text="" color="purple" :icon="GoodIcon" />
     </div>
@@ -56,8 +56,8 @@
 
   // 顶部统计数据
   const statData = ref({
-    deviceCount: '--',
-    categorycount: '--',
+    deviceCount1: '--',
+    deviceCount2: '--',
     attributeCount: '--',
     goodQualityCount: '--',
   });
@@ -67,6 +67,8 @@
     value: string;
     // 设备节点对应的 deviceId（来自 /bems/monitorSource/tree），点击标签时传给 queryPage 统一查询
     deviceId?: string | number;
+    // 一级分类节点对应的 categoryId（来自 /bems/monitorSource/tree），传给 /bems/deviceStatistics/statistics
+    categoryId?: string | number;
     children?: MonitorTreeNode[];
   }
 
@@ -105,6 +107,8 @@
         key: String(item.key ?? item.categoryId ?? item.code ?? item.id ?? ''),
         value: String(item.value ?? item.categoryName ?? item.name ?? item.title ?? item.label ?? item.text ?? ''),
         deviceId: item.deviceId ?? item.id,
+        // 保留一级分类原始 categoryId，用于切换时调统计接口
+        categoryId: item.categoryId,
       };
       if (!node.key || !node.value) return null;
       if (Array.isArray(item.children) && item.children.length) {
@@ -142,13 +146,17 @@
     activeChild.value = first.children && first.children.length ? first.children[0].key : '';
   };
 
-  // 切换一级页签时，联动选中其第一个二级页签（无 children 则清空）
+  // 切换一级页签时，联动选中其第一个二级页签（无 children 则清空），
+  // 并以当前一级分类的 categoryId 重新调用统计接口
   const handleCategoryChange = (key: string) => {
     const category = categoryData.value.find((item) => item.key === key);
     activeChild.value = category?.children?.length ? category.children[0].key : '';
+    if (category && category.categoryId !== undefined && category.categoryId !== '') {
+      fetchStatistics(category.categoryId);
+    }
   };
 
-  // 初始化：调用接口获取页签数据
+  // 初始化：调用接口获取页签数据，并在 tree 返回后自动以第一项的 categoryId 调用一次统计接口
   const fetchCategoryData = async () => {
     try {
       const res: any = await getMonitorSourceTree();
@@ -164,16 +172,22 @@
       isLoaded.value = true;
     }
     selectDefaultTab();
+    // tree 返回后，拿第一个一级分类的 categoryId 自动调用一次统计接口
+    const first = categoryData.value[0];
+    if (first && first.categoryId !== undefined && first.categoryId !== '') {
+      fetchStatistics(first.categoryId);
+    }
   };
 
-  // 获取顶部统计数据
-  const fetchStatistics = async () => {
+  // 获取顶部统计数据，categoryId 透传给后端做按分类过滤
+  const fetchStatistics = async (categoryId?: string | number) => {
+    const params = categoryId !== undefined && categoryId !== '' ? { categoryId } : undefined;
     try {
-      const res: any = await getDeviceStatistics();
+      const res: any = await getDeviceStatistics(params);
       if (res) {
         statData.value = {
-          deviceCount: res.deviceCount ?? '--',
-          categorycount: res.categorycount ?? res.categoryCount ?? '--',
+          deviceCount1: res.deviceCount1 ?? '--',
+          deviceCount2: res.deviceCount2 ?? res.categoryCount ?? '--',
           attributeCount: res.attributeCount ?? '--',
           goodQualityCount: res.goodQualityCount ?? '--',
         };
@@ -184,7 +198,7 @@
   };
 
   onMounted(() => {
-    fetchStatistics();
+    // 仅触发树接口加载；首个一级分类的 categoryId 拿到后会由 fetchCategoryData 内部自动调一次统计接口
     fetchCategoryData();
   });
 </script>

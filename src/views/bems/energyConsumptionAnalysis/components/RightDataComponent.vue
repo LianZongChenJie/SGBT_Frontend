@@ -106,7 +106,7 @@
           例如2010至2022</p>
         <p>2.月分析时，时间框可以选择到月份：
           例如2021-1至2021-6</p>
-        <p>1.日分析时，时间框可以选择到日：
+        <p>3.日分析时，时间框可以选择到日：
           例如2021-1-1至2021-6-30</p>
       </div>
     </div>
@@ -248,6 +248,33 @@ const handleIncreaseContent = (value) => {
   formState.value.increaseContent = targetItem.content;
 };
 
+// 计算两个日期之间选择单位的数量（type: year-年数 / month-月数 / day-日数）
+const calculateUnitCount = (dateStr1, dateStr2, type) => {
+  const d1 = parseDate(dateStr1);
+  const d2 = parseDate(dateStr2);
+  if (type === 'year') {
+    return d2.getFullYear() - d1.getFullYear() + 1;
+  }
+  if (type === 'month') {
+    return (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth()) + 1;
+  }
+  return calculateDayDiff(dateStr1, dateStr2) + 1;
+};
+
+// 校验分析起止时间选择的单位数量是否不超过基准起止时间
+const validateTimeCount = () => {
+  const [aStart, aEnd] = formState.value.analysisTime;
+  const [rStart, rEnd] = formState.value.referenceTime;
+  const unitName = activeKey.value === '1' ? '年' : activeKey.value === '2' ? '月' : '日';
+  const analysisCount = calculateUnitCount(aStart, aEnd, formState.value.dateType);
+  const referenceCount = calculateUnitCount(rStart, rEnd, formState.value.dateType);
+  if (analysisCount > referenceCount) {
+    message.error(`分析起止时间选择的${unitName}数量（${analysisCount}）不能大于基准起止时间选择的${unitName}数量（${referenceCount}）`);
+    return false;
+  }
+  return true;
+};
+
 // 提交查询
 const onSubmit = () => {
   formRef.value
@@ -259,6 +286,9 @@ const onSubmit = () => {
         formState.value.dateType = 'month';
       } else {
         formState.value.dateType = 'day';
+      }
+      if (!validateTimeCount()) {
+        return;
       }
       props.searchChartData(formState.value);
     })

@@ -29,7 +29,7 @@
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { useMessage } from '/@/hooks/web/useMessage';
   import { queryTreeList } from '/@/api/common/api';
-  import { listNoCareTenant } from '/@/views/system/user/user.api';
+  import { getUserDepartList, listNoCareTenant } from '/@/views/system/user/user.api';
   import { formSchema } from './demo.data';
   import { saveOrUpdateDemo, getDemoById, buildEmployeePayload } from './demo.api';
   import { buildEmployeeBatchCreatePayload, type SystemUserRecord } from './employeePayload';
@@ -42,7 +42,9 @@
 
   interface DepartmentRecord {
     id?: string | number;
+    key?: string | number;
     orgCode?: string;
+    children?: DepartmentRecord[];
   }
 
   // 声明Emits
@@ -97,15 +99,22 @@
     if (!departmentIds.length) return users;
 
     const departments = (await queryTreeList({ ids: departmentIds.join(',') })) as DepartmentRecord[];
-    const orgCodeByDepartmentId = new Map(
-      (Array.isArray(departments) ? departments : [])
-        .filter((department) => department.id != null && department.orgCode)
-        .map((department) => [String(department.id), String(department.orgCode)]),
-    );
+    const orgCodeByDepartmentId = new Map<string, string>();
+    function collectCodes(records: DepartmentRecord[]) {
+      records.forEach((department) => {
+        const id = department.id ?? department.key;
+        if (id != null && department.orgCode) {
+          orgCodeByDepartmentId.set(String(id), department.orgCode);
+        }
+        if (department.children) collectCodes(department.children);
+      });
+    }
+    collectCodes(Array.isArray(departments) ? departments : []);
 
     return users.map((user) => ({
       ...user,
       resolvedOrgCode:
+        user.resolvedOrgCode ||
         user.sysOrgCode ||
         user.orgCode ||
         normalizeDepartmentIds(user.departIds)
@@ -115,6 +124,28 @@
     }));
   }
 
+  async function resolveSelectedUserDepartments(users: SystemUserRecord[]) {
+    // departIds 是负责部门；所属部门关系与系统用户编辑页使用同一个接口查询。
+    const usersWithDepartments = await Promise.all(
+      users.map(async (user) => {
+        if (user.resolvedOrgCode || user.sysOrgCode || user.orgCode) return user;
+        const departments = (await getUserDepartList({ userId: user.id })) as DepartmentRecord[];
+        return {
+          ...user,
+          resolvedOrgCode: (Array.isArray(departments) ? departments : [])
+            .map((department) => department.orgCode)
+            .filter(Boolean)
+            .join(','),
+          departIds: (Array.isArray(departments) ? departments : [])
+            .map((department) => department.key ?? department.id)
+            .filter((id) => id != null)
+            .map(String),
+        };
+      }),
+    );
+    return resolveDepartmentCodes(usersWithDepartments);
+  }
+
   async function loadSystemUsers() {
     userOptions.value = [];
     userLoadError.value = false;
@@ -122,8 +153,7 @@
     try {
       const response = await listNoCareTenant({ pageNo: 1, pageSize: 1000, column: 'createTime', order: 'desc' });
       const users: SystemUserRecord[] = Array.isArray(response) ? response : response?.records || [];
-      const usersWithDepartmentCodes = await resolveDepartmentCodes(users);
-      userOptions.value = usersWithDepartmentCodes.map((user) => ({
+      userOptions.value = users.map((user) => ({
         ...user,
         label: formatUserLabel(user),
         value: String(user.id),
@@ -177,9 +207,12 @@
           createMessage.warning(userLoadError.value ? '系统用户加载失败，请重新打开弹框后重试' : '请选择系统用户');
           return;
         }
-        payload = buildEmployeeBatchCreatePayload(selectedUsers);
+        setModalProps({ confirmLoading: true });
+        const usersWithDepartments = await resolveSelectedUserDepartments(selectedUsers);
+        payload = buildEmployeeBatchCreatePayload(usersWithDepartments);
         if (payload.some((employee) => !employee.sysOrgCode)) {
-          createMessage.warning('所选系统用户未维护部门，无法新增人员');
+          const names = payload.filter((employee) => !employee.sysOrgCode).map((employee) => employee.employeeName).join('、');
+          createMessage.warning(`${names}未查询到所属部门编码，请在系统用户中检查所属部门`);
           return;
         }
       }

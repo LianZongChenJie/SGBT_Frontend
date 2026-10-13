@@ -38,8 +38,8 @@
           <TableAction :actions="getActions(record)" />
         </template>
       </BasicTable>
-      <DemoModal :isDisabled="isDisabled" @register="registerModal" @success="reload" />
-      <DemoModalAddorEdit :isDisabled="isDisabled" @register="registerModal1" @success="reload" />
+      <DemoModal :isDisabled="isDisabled" @register="registerModal" @success="handleOperationSuccess" />
+      <DemoModalAddorEdit :isDisabled="isDisabled" @register="registerModal1" @success="handleOperationSuccess" />
     </a-col>
   </a-row>
 </template>
@@ -67,6 +67,15 @@
   const [registerTable, { reload, setProps }] = useTable({
     title: '人员信息',
     api: getDemoList,
+    // 查询、重置、翻页和操作后刷新都使用当前选中的部门。
+    beforeFetch: (params) => {
+      if (orgCode.value) {
+        params.sysOrgCode = orgCode.value;
+      } else {
+        delete params.sysOrgCode;
+      }
+      return params;
+    },
     columns,
     formConfig: {
       //labelWidth: 120,
@@ -131,18 +140,14 @@
 
   function onTreeSelect(data) {
     checkedKeys.value = [];
-    if (!data || !data.orgCode) {
-      orgCode.value = '';
-      reload();
-      return;
-    }
-    departData.value = data;
-    orgCode.value = data.orgCode;
-    reload({
-      searchInfo: {
-        sysOrgCode: orgCode.value,
-      },
-    });
+    departData.value = data || {};
+    orgCode.value = data?.orgCode || '';
+    reload({ page: 1 });
+  }
+
+  function handleOperationSuccess() {
+    checkedKeys.value = [];
+    return reload();
   }
 
   // function onTreeSelect(data) {
@@ -199,7 +204,7 @@
    */
   async function handleDelete(record) {
     await deleteDemo({ id: record.id }, function () {
-      reload();
+      handleOperationSuccess();
     });
   }
 
@@ -210,8 +215,7 @@
     const ids = checkedKeys.value.map((item) => String(item)).join(',');
     if (!ids) return;
     await batchDeleteDemo({ ids }, function () {
-      checkedKeys.value = [];
-      reload();
+      handleOperationSuccess();
     });
   }
 

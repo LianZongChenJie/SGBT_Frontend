@@ -28,6 +28,7 @@
   import { BasicModal, useModalInner } from '/@/components/Modal';
   import { BasicForm, useForm } from '/@/components/Form/index';
   import { useMessage } from '/@/hooks/web/useMessage';
+  import { queryTreeList } from '/@/api/common/api';
   import { listNoCareTenant } from '/@/views/system/user/user.api';
   import { formSchema } from './demo.data';
   import { saveOrUpdateDemo, getDemoById, buildEmployeePayload } from './demo.api';
@@ -37,6 +38,11 @@
     label: string;
     value: string;
     searchText: string;
+  }
+
+  interface DepartmentRecord {
+    id?: string | number;
+    orgCode?: string;
   }
 
   // 声明Emits
@@ -81,6 +87,34 @@
     return option.searchText.includes(input.trim().toLowerCase());
   }
 
+  function normalizeDepartmentIds(value: SystemUserRecord['departIds']): string[] {
+    const values = Array.isArray(value) ? value : String(value || '').split(',');
+    return values.map((id) => String(id).trim()).filter(Boolean);
+  }
+
+  async function resolveDepartmentCodes(users: SystemUserRecord[]) {
+    const departmentIds = [...new Set(users.flatMap((user) => normalizeDepartmentIds(user.departIds)))];
+    if (!departmentIds.length) return users;
+
+    const departments = (await queryTreeList({ ids: departmentIds.join(',') })) as DepartmentRecord[];
+    const orgCodeByDepartmentId = new Map(
+      (Array.isArray(departments) ? departments : [])
+        .filter((department) => department.id != null && department.orgCode)
+        .map((department) => [String(department.id), String(department.orgCode)]),
+    );
+
+    return users.map((user) => ({
+      ...user,
+      resolvedOrgCode:
+        user.sysOrgCode ||
+        user.orgCode ||
+        normalizeDepartmentIds(user.departIds)
+          .map((departmentId) => orgCodeByDepartmentId.get(departmentId))
+          .filter(Boolean)
+          .join(','),
+    }));
+  }
+
   async function loadSystemUsers() {
     userOptions.value = [];
     userLoadError.value = false;
@@ -88,7 +122,8 @@
     try {
       const response = await listNoCareTenant({ pageNo: 1, pageSize: 1000, column: 'createTime', order: 'desc' });
       const users: SystemUserRecord[] = Array.isArray(response) ? response : response?.records || [];
-      userOptions.value = users.map((user) => ({
+      const usersWithDepartmentCodes = await resolveDepartmentCodes(users);
+      userOptions.value = usersWithDepartmentCodes.map((user) => ({
         ...user,
         label: formatUserLabel(user),
         value: String(user.id),
@@ -143,6 +178,10 @@
           return;
         }
         payload = buildEmployeeBatchCreatePayload(selectedUsers);
+        if (payload.some((employee) => !employee.sysOrgCode)) {
+          createMessage.warning('所选系统用户未维护部门，无法新增人员');
+          return;
+        }
       }
       setModalProps({ confirmLoading: true });
       //提交表单

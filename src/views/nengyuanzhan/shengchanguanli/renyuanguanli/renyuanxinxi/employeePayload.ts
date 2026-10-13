@@ -4,8 +4,15 @@ export interface SystemUserRecord {
   realname?: string;
   workNo?: string;
   phone?: string;
+  resolvedOrgCode?: string;
+  sysOrgCode?: string;
   orgCode?: string;
   orgCodeTxt?: string;
+  departIds?: string | string[];
+  departIds_dictText?: string;
+  deptId?: string;
+  deptName?: string;
+  departName?: string;
   post?: string;
   postText?: string;
 }
@@ -54,7 +61,8 @@ export function buildEmployeeCreatePayload(user: SystemUserRecord, index = 0): E
     employeeName: toTrimmedString(user.realname),
     employeeCode: toTrimmedString(user.workNo),
     position: toTrimmedString(user.post),
-    sysOrgCode: toTrimmedString(user.orgCode),
+    // 只允许组织编码，不能将部门名称或部门主键传给 sysOrgCode。
+    sysOrgCode: toTrimmedString(user.resolvedOrgCode || user.sysOrgCode || user.orgCode),
     contactNo: toTrimmedString(user.phone),
   };
 }

@@ -8,7 +8,7 @@
               <DepartLeftTree @select="onTreeSelect" />
             </div>
           </a-card>
-          <a-card class="mt2 realtime-ptz-card" size="small" title="云台控制">
+          <a-card v-if="false" class="mt2 realtime-ptz-card" size="small" title="云台控制">
             <div class="flex justify-around items-start gap-4">
               <div class="yuanchengBox">
                 <div class="flex justify-center">

@@ -36,7 +36,7 @@ os_del.cmd
 /.vscode/
 /.history/
 /svn clear.bat
-.env.development
+# .env.development
 # 忽略pnpm的锁文件
 pnpm-lock.yaml
 
